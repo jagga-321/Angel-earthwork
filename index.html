@@ -3223,8 +3223,7 @@ function shareInvoice(id){
   lines.push("");
   lines.push(biz+"  |  ABN: "+abn+"  |  "+phone+"  |  "+email+"  |  "+addr);
 
-  var text=lines.filter(function(l){return l!==undefined;}).join("
-");
+  var text=lines.filter(function(l){return l!==undefined;}).join("\n");
 
   if(navigator.share){
     navigator.share({title:"Invoice "+inv.invoiceNo+" — "+biz,text:text}).catch(function(){});
