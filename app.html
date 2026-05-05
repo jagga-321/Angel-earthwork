@@ -244,6 +244,7 @@ select option{background:#1a1a1a;color:#F0EDE8}
   <div style="margin-top:18px;font-size:11px;color:#3A3A3A;line-height:1.8">
     Enter your PIN to continue
   </div>
+  <button onclick="clearUninvoicedSessions()" style="background:none;border:none;color:#F5C518;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;margin-bottom:6px;display:block">🗑️ Clear uninvoiced sessions</button>
   <button onclick="(function(){if(!confirm('Reset all app data?'))return;try{['ae_sessions','ae_crew','ae_invoices','ae_settings','ae_active','ae_history','ae_pins','ae_ents','ae_clocked','ae_hist','ae_mgr','ae_app_ver'].forEach(function(k){localStorage.removeItem(k);});}catch(e){}location.reload();})()" style="margin-top:14px;background:none;border:none;color:#2A2A2A;font-size:10px;cursor:pointer;font-family:inherit;text-decoration:underline">Reset app</button>
 </div>
 
@@ -288,9 +289,31 @@ select option{background:#1a1a1a;color:#F0EDE8}
 <div id="boss-view" style="display:none">
   <!-- HEADER -->
   <div id="boss-header" style="background:#141414;border-bottom:1px solid #282828;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100">
-    <div>
-      <div style="font-size:12px;font-weight:800;color:#E8580A;letter-spacing:2px;text-transform:uppercase">⛏ Angel Earthworks</div>
-      <div id="biz-name" style="font-size:10px;color:#6E6B64;margin-top:1px">Angel Earthworks and Civil</div>
+    <div style="display:flex;align-items:center">
+<svg viewBox="0 500 5153 1600" style="height:48px;width:auto;max-width:200px" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
+<path d="M1742.49,1517.408c0.897,1.718 -0.374,3.81 -2.316,3.81l-279.126,0c-4.034,0 -7.695,-2.241 -9.563,-5.828l-56.557,-109.528c-2.092,-4.034 -6.276,-6.5 -10.759,-6.5l-466.803,0c-3.437,0 -5.678,-3.661 -4.109,-6.724l99.816,-188.948c2.54,-4.782 7.471,-7.77 12.776,-7.77l261.792,0c2.764,0 4.557,-2.988 3.287,-5.454l-149.425,-289.436c-8.144,-15.69 -18.529,-30.109 -30.856,-42.81l-308.263,-317.378c-1.121,-1.195 -2.466,-2.167 -3.885,-2.914c-18.305,-9.713 -33.322,-0.971 -51.327,-17.483c-2.615,-2.391 -6.649,-2.466 -9.339,-0.149c-103.551,91.224 -231.982,203.815 -385.292,337.775c-17.259,15.092 -23.31,35.713 -18.006,61.862c0.448,2.316 1.345,4.557 2.615,6.575c7.322,11.431 38.85,63.057 94.661,154.804c29.063,47.741 67.017,86.965 113.936,117.747c6.126,4.034 3.81,13.523 -3.511,14.27c-3.362,0.299 -7.92,0.224 -13.672,-0.299c-45.126,-3.885 -102.879,-9.937 -173.258,-18.23c-35.713,-4.184 -62.46,-8.965 -80.316,-14.27c-68.81,-20.546 -173.93,-139.712 -145.166,-217.338c11.805,-31.977 32.799,-48.488 59.919,-67.241c3.661,-2.466 3.362,-7.994 -0.523,-10.086c-26.224,-13.897 -23.908,-50.431 0.747,-63.431c2.914,-1.569 8.218,-4.034 15.839,-7.546c2.839,-1.345 4.856,-4.109 5.155,-7.322l7.994,-78.149c0.299,-2.988 -0.598,-5.977 -2.466,-8.293c-3.287,-4.856 -9.937,-9.414 -12.626,-14.793c-16.885,-34.144 8.891,-65.971 45.126,-59.471c6.201,1.121 12.552,-0.822 17.034,-5.155c61.414,-59.172 113.638,-109.304 156.597,-150.396c12.328,-11.805 7.172,-31.006 21.069,-45.873c22.862,-24.282 81.362,-81.586 175.574,-172.063c5.603,-5.305 22.19,-10.46 49.833,-15.316c4.259,-0.747 8.293,-2.316 11.879,-4.632l64.327,-40.718c4.856,-3.063 8.443,-7.695 10.236,-13.075c7.994,-23.908 27.121,-38.85 57.304,-44.827c39.299,-7.845 74.115,7.397 88.609,44.379c6.724,17.109 7.77,33.396 3.213,48.787c-1.195,3.96 -0.224,8.293 2.615,11.431l142.327,156.149c2.764,3.063 6.276,5.379 10.161,6.724c18.155,6.425 29.96,12.477 44.977,27.27c41.69,41.017 101.982,99.89 180.804,176.545c7.322,7.172 11.954,16.736 13.075,26.896c1.569,13.822 5.902,27.644 13.149,41.54c129.178,246.924 272.7,521.194 430.717,822.882Z" fill="#f57e25"/>
+<path d="M892.935,721.571l173.109,178.264c0.672,0.747 0.897,1.868 0.374,2.839l-309.16,616.9c-0.374,0.822 -1.27,1.345 -2.167,1.345l-283.907,0c-1.868,0 -3.063,-1.943 -2.167,-3.586l419.958,-795.239c0.747,-1.494 2.764,-1.718 3.96,-0.523Z" fill="#D0CCC8"/>
+<path d="M2369.58,1294.507l-414.257,-300.525l-180.767,0l0,527.236l203.363,0l0,-305.797l421.789,305.797l173.235,0l0,-527.236l-203.363,0l0,300.525Z" fill="#D0CCC8"/>
+<path d="M2627.172,1363.047c0,108.46 50.464,158.171 158.171,158.171l489.576,0c107.707,0 158.171,-49.711 158.171,-158.171l0,-141.601l-408.231,0l0,114.486l204.869,0l0,10.545c0,26.362 -8.285,34.647 -34.647,34.647l-322.367,0c-26.362,0 -34.647,-8.285 -34.647,-34.647l0,-162.69c0,-26.362 8.285,-34.647 34.647,-34.647l314.835,0c26.362,0 34.647,8.285 34.647,34.647l0,10.545l210.894,0l0,-42.179c0,-108.46 -50.464,-158.171 -158.171,-158.171l-489.576,0c-107.707,0 -158.171,49.711 -158.171,158.171l0,210.894Z" fill="#D0CCC8"/>
+<path d="M3698.215,1314.843l466.981,0l0,-120.511l-466.981,0l0,-51.217l497.108,0l0,-149.133l-708.003,0l0,527.236l715.535,0l0,-149.133l-504.64,0l0,-57.243Z" fill="#D0CCC8"/>
+<path d="M4458.941,993.982l-210.894,0l0,527.236l677.875,0l0,-173.235l-466.981,0l0,-354.001Z" fill="#D0CCC8"/>
+<path d="M555.276,1744.36l126.464,0l0,-53.784l-126.464,0l0,-35.613l141,0l0,-62.142l-219.495,0l0,254.382l223.129,0l0,-62.142l-144.634,0l0,-40.701Z" fill="#f57e25"/>
+<path d="M1011.71,1847.203l-106.477,-254.382l-89.034,0l-106.84,254.382l82.856,0l14.173,-39.611l104.297,0l14.173,39.611l86.853,0Zm-152.993,-183.882l32.343,90.124l-65.049,0l32.706,-90.124Z" fill="#f57e25"/>
+<path d="M1229.388,1758.169c31.979,-5.451 46.152,-25.075 46.152,-64.686l0,-34.523c0,-46.516 -19.624,-66.139 -66.139,-66.139l-180.975,0l0,254.382l78.495,0l0,-81.766l43.608,0l50.876,81.766l85.036,0l-57.054,-89.034Zm-51.967,-107.567c14.9,0 19.624,4.724 19.624,19.624l0,19.624c0,14.9 -4.724,19.624 -19.624,19.624l-70.5,0l0,-58.871l70.5,0Z" fill="#f57e25"/>
+<path d="M1295.164,1592.821l0,69.41l82.129,0l0,184.972l78.495,0l0,-184.972l82.129,0l0,-69.41l-242.753,0Z" fill="#f57e25"/>
+<path d="M1735.608,1680.764l-97.392,0l0,-87.943l-78.495,0l0,254.382l78.495,0l0,-96.665l97.392,0l0,96.665l78.495,0l0,-254.382l-78.495,0l0,87.943Z" fill="#f57e25"/>
+<path d="M2116.091,1738.545l-47.969,-145.725l-57.781,0l-47.242,145.725l-45.062,-145.725l-85.763,0l90.487,254.382l67.956,0l46.879,-138.82l46.879,138.82l67.956,0l90.487,-254.382l-81.766,0l-45.062,145.725Z" fill="#f57e25"/>
+<path d="M2440.973,1847.203c49.786,0 73.407,-22.894 73.407,-73.407l0,-107.567c0,-50.513 -23.621,-73.407 -73.407,-73.407l-118.469,0c-49.786,0 -73.407,22.894 -73.407,73.407l0,107.567c0,50.513 23.621,73.407 73.407,73.407l118.469,0Zm-90.124,-66.503c-17.443,0 -23.258,-5.814 -23.258,-23.258l0,-74.861c0,-17.443 5.814,-23.258 23.258,-23.258l61.778,0c17.08,0 23.258,5.814 23.258,23.258l0,74.861c0,17.443 -6.178,23.258 -23.258,23.258l-61.778,0Z" fill="#f57e25"/>
+<path d="M2746.959,1758.169c31.979,-5.451 46.152,-25.075 46.152,-64.686l0,-34.523c0,-46.516 -19.624,-66.139 -66.139,-66.139l-180.975,0l0,254.382l78.495,0l0,-81.766l43.608,0l50.876,81.766l85.036,0l-57.054,-89.034Zm-51.967,-107.567c14.9,0 19.624,4.724 19.624,19.624l0,19.624c0,14.9 -4.724,19.624 -19.624,19.624l-70.5,0l0,-58.871l70.5,0Z" fill="#f57e25"/>
+<path d="M2988.985,1715.287l106.84,-122.467l-99.209,0l-90.851,115.926l0,-115.926l-78.495,0l0,254.382l78.495,0l0,-121.377l92.304,121.377l99.209,0l-108.294,-131.915Z" fill="#f57e25"/>
+<path d="M3098.733,1789.785c0,39.611 18.17,57.418 57.418,57.418l143.181,0c39.248,0 57.418,-17.807 57.418,-57.418l0,-38.884c0,-39.248 -16.717,-54.147 -57.418,-57.418l-102.48,-9.085c-11.992,-1.09 -15.99,-4.361 -15.99,-15.99l0,-4.724c0,-11.992 3.997,-15.99 15.99,-15.99l63.232,0c11.992,0 15.99,3.997 15.99,15.99l0,7.268l75.588,0l0,-20.714c0,-39.611 -18.17,-57.418 -57.418,-57.418l-134.459,0c-39.248,0 -57.418,17.807 -57.418,57.418l0,34.16c0,38.884 16.717,53.42 57.418,57.418l102.48,9.085c12.719,1.09 15.99,3.997 15.99,15.99l0,9.085c0,11.992 -3.997,15.99 -15.99,15.99l-71.954,0c-11.992,0 -15.99,-3.997 -15.99,-15.99l0,-10.539l-75.588,0l0,24.348Z" fill="#f57e25"/>
+<path d="M3596.231,1693.847c-11.992,0 -15.99,-3.997 -15.99,-15.99l0,-14.173c0,-11.992 3.997,-15.99 15.99,-15.99l45.789,0c12.719,0 15.99,3.997 15.99,15.99l0,7.268l72.681,0l0,-20.714c0,-39.611 -18.17,-57.418 -57.418,-57.418l-111.201,0c-39.248,0 -57.418,17.807 -57.418,57.418l0,18.534c0,24.348 7.995,39.974 23.985,46.879c-23.258,4.724 -34.887,21.441 -34.887,50.15l0,23.985c0,39.611 18.17,57.418 57.418,57.418l133.005,0c39.248,0 57.418,-17.807 57.418,-57.418l0,-49.059l36.34,0l0,-46.879l-181.701,0Zm72.681,82.492c0,11.992 -3.997,15.99 -15.99,15.99l-67.593,0c-11.992,0 -15.99,-3.997 -15.99,-15.99l0,-19.624c0,-11.992 3.997,-15.99 15.99,-15.99l83.583,0l0,35.613Z" fill="#f57e25"/>
+<path d="M4087.552,1847.203c49.786,0 73.407,-22.894 73.407,-73.407l0,-34.887l-75.588,0l0,19.624c0,17.443 -6.178,23.258 -23.258,23.258l-54.51,0c-17.443,0 -23.258,-5.814 -23.258,-23.258l0,-77.041c0,-17.443 5.814,-23.258 23.258,-23.258l54.51,0c17.08,0 23.258,5.814 23.258,23.258l0,17.08l75.588,0l0,-32.343c0,-50.513 -23.621,-73.407 -73.407,-73.407l-108.294,0c-49.786,0 -73.407,22.894 -73.407,73.407l0,107.567c0,50.513 23.621,73.407 73.407,73.407l108.294,0Z" fill="#f57e25"/>
+<rect x="4193.302" y="1592.821" width="79.949" height="254.382" fill="#f57e25"/>
+<path d="M4441.143,1756.352l-62.505,-163.531l-85.763,0l107.931,254.382l76.315,0l107.931,-254.382l-81.766,0l-62.142,163.531Z" fill="#f57e25"/>
+<rect x="4604.674" y="1592.821" width="79.949" height="254.382" fill="#f57e25"/>
+<path d="M4799.458,1592.821l-78.495,0l0,254.382l204.959,0l0,-69.41l-126.464,0l0,-184.972Z" fill="#f57e25"/>
+</svg>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
       <div id="live-badge" style="display:none;background:#E8580A18;border:1px solid #E8580A40;border-radius:8px;padding:5px 12px;align-items:center;gap:8px">
@@ -341,20 +364,35 @@ select option{background:#1a1a1a;color:#F0EDE8}
 var DR = {
   excavatorWet:125, excavatorWetTilt:140, excavatorWetRock:155,
   excavatorWetAuger:145, excavatorWetTrenching:130, excavatorWetCleanup:125,
-  excavatorDry:70, truckWet:130, truckWetRegional:150, truckDry:80,
+  excavatorDry:70, truckWet:100, truckWetRegional:120, truckDry:50,
   excavatorSubWet:115, excavatorSubDry:65, truckSubWet:120,
-  minHours:4, mobilisationLocal:200, mobilisationRegional:350, afterHoursSurcharge:25
+  minHours:4, mobilisationLocal:200, mobilisationRegional:350, afterHoursSurcharge:25,
+  excavatorDayRate:250, truckDayRate:600,
+  operatorRate:60, labourRate:45
 };
 var DS = {
   businessName:"Angel Earthworks and Civil", abn:"",
   address:"Victor Harbor / Goolwa SA 5211", phone:"", email:"",
-  accountName:"", bsb:"", account:"", nextInvoice:1,
+  accountName:"", bsb:"", accountNo:"", bank:"", nextInvoice:1,
   rates:{...DR}
 };
 
 // Safe element value getter
 function gv(id){var el=document.getElementById(id);return el?el.value:"";}
 function gvt(id){var el=document.getElementById(id);return el?(el.value||"").trim():"";}
+
+// Build local ISO string from date + time inputs (avoids UTC offset shifting date)
+function localISO(dateStr,timeStr){
+  // dateStr = "2026-04-24", timeStr = "07:00"
+  // Returns "2026-04-24T07:00:00.000+09:30" style - keeps local date intact
+  var d=new Date(dateStr+"T"+(timeStr||"00:00")+":00");
+  var off=-d.getTimezoneOffset(); // minutes ahead of UTC
+  var sign=off>=0?"+":"-";
+  var hh=String(Math.floor(Math.abs(off)/60)).padStart(2,"0");
+  var mm=String(Math.abs(off)%60).padStart(2,"0");
+  var local=dateStr+"T"+(timeStr||"00:00")+":00.000"+sign+hh+":"+mm;
+  return local;
+}
 
 // ── Storage: localStorage (fast) + Firebase (sync across phones) ──
 function load(k,def){
@@ -420,7 +458,7 @@ function startFirebaseListeners(){
 
 // ── Fresh start: wipe all old data from previous app versions ──
 try{
-  var APP_VER="firebase_v5";
+  var APP_VER="firebase_v6";
   if(localStorage.getItem("ae_app_ver")!==APP_VER){
     var keys=["ae_sessions","ae_crew","ae_invoices","ae_settings","ae_active",
               "ae_history","ae_pins","ae_ents","ae_clocked","ae_hist","ae_mgr"];
@@ -429,246 +467,8 @@ try{
   }
 }catch(e){console.log("Storage unavailable:",e);}
 
-var PRELOAD_SESSIONS = [
-  {
-    "id": "preload_1000",
-    "client": "Wooding earthworks",
-    "site": "Oceane",
-    "machine": "Hitachi ZX55U",
-    "attachment": "Tilt Bucket",
-    "hireType": "Wet Hire",
-    "operator": "Damian Angel",
-    "notes": "",
-    "rate": 140,
-    "startTime": "2026-05-01T07:00:00.000+09:30",
-    "endTime": "2026-05-01T16:00:00.000+09:30",
-    "duration": 8.5,
-    "rawDuration": 9.0,
-    "lunchBreak": 30,
-    "total": 1190,
-    "status": "complete",
-    "invoiced": false
-  },
-  {
-    "id": "preload_1001",
-    "client": "Wooding earthworks",
-    "site": "Oceane",
-    "machine": "Hino 700",
-    "attachment": "General Bucket",
-    "hireType": "Dry Hire",
-    "operator": "",
-    "notes": "",
-    "rate": 80,
-    "startTime": "2026-05-01T07:00:00.000+09:30",
-    "endTime": "2026-05-01T16:00:00.000+09:30",
-    "duration": 8.5,
-    "rawDuration": 9.0,
-    "lunchBreak": 30,
-    "total": 680,
-    "status": "complete",
-    "invoiced": false
-  },
-  {
-    "id": "preload_1002",
-    "client": "Wooding earthworks",
-    "site": "Oceane",
-    "machine": "Hino 700",
-    "attachment": "General Bucket",
-    "hireType": "Dry Hire",
-    "operator": "",
-    "notes": "",
-    "rate": 80,
-    "startTime": "2026-04-30T12:00:00.000+09:30",
-    "endTime": "2026-04-30T16:00:00.000+09:30",
-    "duration": 4,
-    "rawDuration": 4.0,
-    "lunchBreak": 0,
-    "total": 320,
-    "status": "complete",
-    "invoiced": false
-  },
-  {
-    "id": "preload_1003",
-    "client": "Wooding earthworks",
-    "site": "Oceane",
-    "machine": "Hitachi ZX55U",
-    "attachment": "Tilt Bucket",
-    "hireType": "Wet Hire",
-    "operator": "Damian Angel",
-    "notes": "",
-    "rate": 140,
-    "startTime": "2026-04-30T09:00:00.000+09:30",
-    "endTime": "2026-04-30T16:30:00.000+09:30",
-    "duration": 7.5,
-    "rawDuration": 7.5,
-    "lunchBreak": 0,
-    "total": 1050,
-    "status": "complete",
-    "invoiced": false
-  },
-  {
-    "id": "preload_1004",
-    "client": "Wooding earthworks",
-    "site": "Oceane",
-    "machine": "Hino 700",
-    "attachment": "General Bucket",
-    "hireType": "Dry Hire",
-    "operator": "",
-    "notes": "",
-    "rate": 80,
-    "startTime": "2026-04-29T13:00:00.000+09:30",
-    "endTime": "2026-04-29T17:00:00.000+09:30",
-    "duration": 4,
-    "rawDuration": 4.0,
-    "lunchBreak": 0,
-    "total": 320,
-    "status": "complete",
-    "invoiced": false
-  },
-  {
-    "id": "preload_1005",
-    "client": "Wooding earthworks",
-    "site": "Oceane",
-    "machine": "Hitachi ZX55U",
-    "attachment": "Tilt Bucket",
-    "hireType": "Wet Hire",
-    "operator": "Damian Angel",
-    "notes": "",
-    "rate": 140,
-    "startTime": "2026-04-29T07:00:00.000+09:30",
-    "endTime": "2026-04-29T17:00:00.000+09:30",
-    "duration": 9.5,
-    "rawDuration": 10.0,
-    "lunchBreak": 30,
-    "total": 1330,
-    "status": "complete",
-    "invoiced": false
-  },
-  {
-    "id": "preload_1006",
-    "client": "Wooding earthworks",
-    "site": "Oceane",
-    "machine": "Hitachi ZX55U",
-    "attachment": "Tilt Bucket",
-    "hireType": "Wet Hire",
-    "operator": "Damian Angel",
-    "notes": "",
-    "rate": 140,
-    "startTime": "2026-04-28T07:00:00.000+09:30",
-    "endTime": "2026-04-28T17:00:00.000+09:30",
-    "duration": 9.5,
-    "rawDuration": 10.0,
-    "lunchBreak": 30,
-    "total": 1330,
-    "status": "complete",
-    "invoiced": false
-  },
-  {
-    "id": "preload_1007",
-    "client": "Wooding earthworks",
-    "site": "Oceane",
-    "machine": "Hino 700",
-    "attachment": "General Bucket",
-    "hireType": "Dry Hire",
-    "operator": "",
-    "notes": "",
-    "rate": 80,
-    "startTime": "2026-04-28T07:00:00.000+09:30",
-    "endTime": "2026-04-28T17:00:00.000+09:30",
-    "duration": 9.5,
-    "rawDuration": 10.0,
-    "lunchBreak": 30,
-    "total": 760,
-    "status": "complete",
-    "invoiced": false
-  },
-  {
-    "id": "preload_1008",
-    "client": "Wooding earthworks",
-    "site": "Oceane",
-    "machine": "Hitachi ZX55U",
-    "attachment": "Tilt Bucket",
-    "hireType": "Wet Hire",
-    "operator": "Damian Angel",
-    "notes": "",
-    "rate": 140,
-    "startTime": "2026-04-27T07:00:00.000+09:30",
-    "endTime": "2026-04-27T17:00:00.000+09:30",
-    "duration": 9.5,
-    "rawDuration": 10.0,
-    "lunchBreak": 30,
-    "total": 1330,
-    "status": "complete",
-    "invoiced": false
-  },
-  {
-    "id": "preload_1009",
-    "client": "Wooding earthworks",
-    "site": "Oceane",
-    "machine": "Hino 700",
-    "attachment": "General Bucket",
-    "hireType": "Dry Hire",
-    "operator": "",
-    "notes": "",
-    "rate": 80,
-    "startTime": "2026-04-27T07:00:00.000+09:30",
-    "endTime": "2026-04-27T17:00:00.000+09:30",
-    "duration": 9.5,
-    "rawDuration": 10.0,
-    "lunchBreak": 30,
-    "total": 760,
-    "status": "complete",
-    "invoiced": false
-  },
-  {
-    "id": "preload_1010",
-    "client": "Wooding earthworks",
-    "site": "Oceane",
-    "machine": "Hitachi ZX55U",
-    "attachment": "Tilt Bucket",
-    "hireType": "Wet Hire",
-    "operator": "Damian Angel",
-    "notes": "",
-    "rate": 140,
-    "startTime": "2026-04-25T07:00:00.000+09:30",
-    "endTime": "2026-04-25T15:00:00.000+09:30",
-    "duration": 8,
-    "rawDuration": 8.0,
-    "lunchBreak": 0,
-    "total": 1120,
-    "status": "complete",
-    "invoiced": false
-  },
-  {
-    "id": "preload_1011",
-    "client": "Wooding earthworks",
-    "site": "Oceane",
-    "machine": "Hino 700",
-    "attachment": "General Bucket",
-    "hireType": "Wet Hire",
-    "operator": "Jamie Angel",
-    "notes": "",
-    "rate": 145,
-    "startTime": "2026-04-25T07:00:00.000+09:30",
-    "endTime": "2026-04-25T15:00:00.000+09:30",
-    "duration": 8,
-    "rawDuration": 8.0,
-    "lunchBreak": 0,
-    "total": 1160,
-    "status": "complete",
-    "invoiced": false
-  }
-];
-
 var sessions = load("ae_sessions",[]);
-// Inject preloaded sessions if not already present
-PRELOAD_SESSIONS.forEach(function(ps){
-  if(!sessions.find(function(s){return s.id===ps.id;})){
-    sessions.push(ps);
-  }
-});
 sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});
-save("ae_sessions",sessions);
 var crew         = load("ae_crew",[]);
 var invoices     = load("ae_invoices",[]);
 var settings     = load("ae_settings",{...DS, rates:{...DR}});
@@ -685,7 +485,7 @@ Object.keys(DR).forEach(k=>{ if(settings.rates[k]===undefined) settings.rates[k]
 var uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 var fmtDate=d=>d?new Date(d).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"}):"—";
 var fmtTime=d=>d?new Date(d).toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"}):"—";
-var fmtHrs=h=>{if(!h||h<=0)return"0h 0m";const hh=Math.floor(h),mm=Math.round((h-hh)*60);return mm>0?`${hh}h ${mm}m`:`${hh}h`;};
+var fmtHrs=h=>{if(!h||h<=0)return"0h 00m";const hh=Math.floor(h),mm=Math.round((h-hh)*60);return `${hh}h ${String(mm).padStart(2,"0")}m`;};
 var fmtCur=n=>"$"+Number(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");
 var fmtInvNo=n=>"INV-"+String(n).padStart(4,"0");
 var fmtIsoDate=d=>d?new Date(d).toISOString().split("T")[0]:"";
@@ -693,14 +493,21 @@ var esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g
 
 var MACHINES=["Hitachi ZX55U","Hino 700","Both"];
 var ATTACHMENTS=["General Bucket","Trenching Bucket","Auger","Rock Breaker","Tilt Bucket","Clean-up Bucket"];
-var HIRE_TYPES=["Wet Hire","Dry Hire","Own Work"];
+var HIRE_TYPES=["Wet Hire","Dry Hire","Day Rate (Dry + Operator)","Day Rate (Machine Only)","Own Work"];
 var INV_STATUS=["Draft","Sent","Paid","Overdue"];
 var STATUS_COL={Draft:"#6E6B64",Sent:"#2878CC",Paid:"#22A05A",Overdue:"#D93B3B"};
-var HIRE_COL={"Wet Hire":"#E8580A","Dry Hire":"#2878CC","Own Work":"#6E6B64"};
+var HIRE_COL={"Wet Hire":"#E8580A","Dry Hire":"#2878CC","Day Rate (Dry + Operator)":"#F5C518","Day Rate (Machine Only)":"#F5C518","Own Work":"#6E6B64"};
 
 function lookupRate(machine,hireType,attachment){
   const r=settings.rates;
   if(hireType==="Own Work") return 0;
+  if(hireType==="Day Rate (Machine Only)"){
+    return machine==="Hino 700"?(r.truckDayRate||600):(r.excavatorDayRate||250);
+  }
+  if(hireType==="Day Rate (Dry + Operator)"){
+    // Returns machine day rate only - operator component added at save time using actual hours
+    return machine==="Hino 700"?(r.truckDayRate||600):(r.excavatorDayRate||250);
+  }
   if(machine==="Hino 700") return hireType==="Dry Hire"?r.truckDry:r.truckWet;
   if(hireType==="Dry Hire") return r.excavatorDry;
   const att=attachment||"General Bucket";
@@ -900,7 +707,17 @@ function updLunch(mins){
 function finishSession(){
   const s=window._lunchSession,e=window._lunchEnd,r=window._lunchRaw,l=window._lunchMins||0;
   if(!s||!e)return;
-  const dur=Math.max(0,r-(l/60)),tot=Math.round(dur*s.rate*100)/100;
+  const dur=Math.max(0,r-(l/60));
+  const r3=settings.rates;
+  let tot;
+  if(s.hireType==="Day Rate (Dry + Operator)"){
+    const mdr=s.machine==="Hino 700"?(r3.truckDayRate||600):(r3.excavatorDayRate||250);
+    tot=Math.round((mdr+((r3.operatorRate||60)*dur))*100)/100;
+  } else if(s.hireType==="Day Rate (Machine Only)"){
+    tot=Math.round((s.machine==="Hino 700"?(r3.truckDayRate||600):(r3.excavatorDayRate||250))*100)/100;
+  } else {
+    tot=Math.round(dur*s.rate*100)/100;
+  }
   sessions.unshift({...s,endTime:e,duration:dur,total:tot,lunchBreak:l,rawDuration:r,status:"complete"});
   sessions.sort((a,b)=>new Date(b.startTime)-new Date(a.startTime));
   activeSession=null;saveAll();updateBanner();closeModal();
@@ -915,8 +732,8 @@ function saveManualSession(){
   if(!client){toast("Please enter a client name","error");return;}
   if(!date){toast("Please enter a date","error");return;}
   if(!startT||!endT){toast("Please enter start and end times","error");return;}
-  const startISO=new Date(date+"T"+startT).toISOString();
-  const endISO=new Date(date+"T"+endT).toISOString();
+  const startISO=localISO(date,startT);
+  const endISO=localISO(date,endT);
   if(new Date(endISO)<=new Date(startISO)){toast("End time must be after start time","error");return;}
   const rawDuration=(new Date(endISO)-new Date(startISO))/3600000;
   const lunchMins=parseInt(gv("mf-lunch"))||0;
@@ -928,7 +745,19 @@ function saveManualSession(){
   const site=document.getElementById("mf-site").value.trim();
   const notes=document.getElementById("mf-notes").value.trim();
   const rate=parseFloat(document.getElementById("mf-rate").value)||settings.rates.excavatorWet;
-  const total=Math.round(duration*rate*100)/100;
+  const isDayRate=hireType.startsWith("Day Rate");
+  const r=settings.rates;
+  let total;
+  if(hireType==="Day Rate (Dry + Operator)"){
+    // Machine day rate + operator rate x actual hours worked
+    const machineRate=machine==="Hino 700"?(r.truckDayRate||600):(r.excavatorDayRate||250);
+    const opRate=r.operatorRate||60;
+    total=Math.round((machineRate+(opRate*duration))*100)/100;
+  } else if(hireType==="Day Rate (Machine Only)"){
+    total=Math.round(rate*100)/100;
+  } else {
+    total=Math.round(duration*rate*100)/100;
+  }
   addHistory("clients",client);addHistory("sites",site);addHistory("notes",notes);
   sessions.unshift({id:uid(),client,machine,attachment,hireType,operator,site,notes,
     rate,startTime:startISO,endTime:endISO,duration,lunchBreak:lunchMins,rawDuration,total,status:"complete",invoiced:false});
@@ -1007,10 +836,12 @@ function editSession(id){
   const attachOpts=ATTACHMENTS.map(a=>`<option value="${a}"${s.attachment===a?" selected":""}>${a}</option>`).join("");
   const machineOpts=MACHINES.map(m=>`<option value="${m}"${s.machine===m?" selected":""}>${m}</option>`).join("");
   const hireOpts=HIRE_TYPES.map(h=>`<option value="${h}"${s.hireType===h?" selected":""}>${h}</option>`).join("");
-  const startDate=s.startTime?new Date(s.startTime).toISOString().split("T")[0]:"";
-  const sd=s.startTime?new Date(s.startTime):null,ed=s.endTime?new Date(s.endTime):null;
-  const startT=sd?String(sd.getHours()).padStart(2,"0")+":"+String(sd.getMinutes()).padStart(2,"0"):"";
-  const endT=ed?String(ed.getHours()).padStart(2,"0")+":"+String(ed.getMinutes()).padStart(2,"0"):"";
+  // Extract local date/time from stored ISO string without UTC conversion
+  function lDatePart(iso){if(!iso)return"";var m=iso.match(/^(\d{4}-\d{2}-\d{2})/);return m?m[1]:"";}
+  function lTimePart(iso){if(!iso)return"";var m=iso.match(/T(\d{2}:\d{2})/);return m?m[1]:"";}
+  const startDate=lDatePart(s.startTime);
+  const startT=lTimePart(s.startTime);
+  const endT=lTimePart(s.endTime);
   const lunch=s.lunchBreak||0;
   document.getElementById("modal-body").innerHTML=`
     <div style="background:#E8580A18;border:1px solid #E8580A30;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#C8C4BE">
@@ -1025,10 +856,11 @@ function editSession(id){
     </div>
     <div class="field"><label>Machine</label><select id="ed-machine" onchange="edMachChange()" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%">${machineOpts}</select></div>
     <div class="field" id="ed-att-wrap" style="${s.machine==="Hino 700"?"display:none":""}"><label>Attachment</label><select id="ed-attachment" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%">${attachOpts}</select></div>
-    <div class="field"><label>Hire Type</label><select id="ed-hiretype" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%">${hireOpts}</select></div>
+    <div class="field"><label>Hire Type</label><select id="ed-hiretype" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%" onchange="edHireChange(this.value)">${hireOpts}</select></div>
     <div class="field"><label>Operator</label><select id="ed-operator" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%">${crewOpts}</select></div>
     <div class="field-row">
-      <div class="field"><label>Rate ($/hr ex GST)</label><input id="ed-rate" type="number" value="${s.rate}" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%"/></div>
+      <div class="field"><label id="ed-rate-label">Rate (ex GST)</label><input id="ed-rate" type="number" value="${s.hireType&&s.hireType.startsWith("Day Rate")?lookupRate(s.machine,s.hireType,s.attachment):s.rate}" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%"/></div>
+      <div id="ed-rate-note" style="font-size:11px;color:#E8580A;margin-bottom:8px;margin-top:-6px"></div>
       <div class="field"><label>Lunch (mins)</label><input id="ed-lunch" type="number" min="0" max="120" value="${lunch}" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%"/></div>
     </div>
     <div class="field"><label>Notes</label>${smartInput("ed-notes","notes","Any notes",s.notes)}</div>
@@ -1060,12 +892,24 @@ function saveEditSession(){
   const notes=document.getElementById("ed-notes").value.trim();
   if(!client){toast("Please enter a client name","error");return;}
   if(!date||!startT||!endT){toast("Please enter date and times","error");return;}
-  const startISO=new Date(date+"T"+startT).toISOString();
-  const endISO=new Date(date+"T"+endT).toISOString();
+  const startISO=localISO(date,startT);
+  const endISO=localISO(date,endT);
   if(new Date(endISO)<=new Date(startISO)){toast("End must be after start","error");return;}
   const rawDuration=(new Date(endISO)-new Date(startISO))/3600000;
   const duration=Math.max(0,rawDuration-(lunch/60));
-  const total=Math.round(duration*rate*100)/100;
+  // Day rates: machine flat + operator hourly on actual duration
+  let total;
+  const r2=settings.rates;
+  if(hireType==="Day Rate (Dry + Operator)"){
+    const machineDayRate=machine==="Hino 700"?(r2.truckDayRate||600):(r2.excavatorDayRate||250);
+    const opHourlyRate=r2.operatorRate||60;
+    total=Math.round((machineDayRate+(opHourlyRate*duration))*100)/100;
+  } else if(hireType==="Day Rate (Machine Only)"){
+    const machineDayRate2=machine==="Hino 700"?(r2.truckDayRate||600):(r2.excavatorDayRate||250);
+    total=Math.round(machineDayRate2*100)/100;
+  } else {
+    total=Math.round(duration*rate*100)/100;
+  }
   addHistory("clients",client);addHistory("sites",site);addHistory("notes",notes);
   sessions=sessions.map(x=>x.id===id?{...x,client,site,machine,attachment,hireType,operator,rate,notes,
     startTime:startISO,endTime:endISO,rawDuration,duration,lunchBreak:lunch,total}:x);
@@ -1533,7 +1377,7 @@ function openModal(type, data){
       <div class="line-item-row" style="${i<inv.items.length-1?"":"border-bottom:none"}">
         <div style="flex:1">
           <div style="font-size:12px;color:#F0EDE8;font-weight:700">${esc(item.machine)} — ${esc(item.hireType)}</div>
-          <div style="font-size:11px;color:#6E6B64;margin-top:2px">${fmtDate(item.startTime)} · ${esc(item.site||"Site not specified")} · ${fmtHrs(item.duration)} @ ${fmtCur(item.rate)}/hr</div>
+          <div style="font-size:11px;color:#6E6B64;margin-top:2px">${fmtDate(item.startTime)} · ${esc(item.site||"Site not specified")} · ${item.hireType&&item.hireType.startsWith("Day Rate (Dry")?`Machine: ${fmtCur(settings.rates.excavatorDayRate||250)}/day + Operator: ${fmtHrs(item.duration)} @ ${fmtCur(settings.rates.operatorRate||60)}/hr`:item.hireType==="Day Rate (Machine Only)"?`Machine only: ${fmtCur(item.rate)}/day`:`${fmtHrs(item.duration)} @ ${fmtCur(item.rate)}/hr`}</div>
           ${item.attachment&&item.attachment!=="General Bucket"?`<div style="font-size:10px;color:#F5C518;margin-top:2px">Attachment: ${esc(item.attachment)}</div>`:""}
           ${item.operator?`<div style="font-size:10px;color:#6E6B64;margin-top:1px">Operator: ${esc(item.operator)}</div>`:""}
         </div>
@@ -1542,52 +1386,94 @@ function openModal(type, data){
 
     const col=STATUS_COL[inv.status]||"#6E6B64";
     body.innerHTML=`
-      <div class="inv-header">
-        <div style="font-size:17px;font-weight:800;color:#fff">${esc(settings.businessName)}</div>
-        ${settings.abn?`<div style="font-size:11px;color:#ffffffbb;margin-top:3px">ABN: ${esc(settings.abn)}</div>`:""}
-        ${settings.address?`<div style="font-size:11px;color:#ffffffbb">${esc(settings.address)}</div>`:""}
-        ${settings.phone?`<div style="font-size:11px;color:#ffffffbb">${esc(settings.phone)}</div>`:""}
-        ${settings.email?`<div style="font-size:11px;color:#ffffffbb">${esc(settings.email)}</div>`:""}
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;gap:10px;margin-bottom:12px">
-        <div>
-          <div style="color:#6E6B64;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px">BILL TO</div>
-          <div style="color:#F0EDE8;font-weight:700">${esc(inv.client)}</div>
-          ${inv.clientAddress?`<div style="color:#6E6B64">${esc(inv.clientAddress)}</div>`:""}
+      <div class="inv-header" style="background:linear-gradient(135deg,#E8580A,#c44a05);border-radius:14px;padding:18px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="flex:1">
+            <svg viewBox="0 500 5153 1600" style="height:44px;width:auto;max-width:180px;display:block;margin-bottom:8px" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
+<path d="M1742.49,1517.408c0.897,1.718 -0.374,3.81 -2.316,3.81l-279.126,0c-4.034,0 -7.695,-2.241 -9.563,-5.828l-56.557,-109.528c-2.092,-4.034 -6.276,-6.5 -10.759,-6.5l-466.803,0c-3.437,0 -5.678,-3.661 -4.109,-6.724l99.816,-188.948c2.54,-4.782 7.471,-7.77 12.776,-7.77l261.792,0c2.764,0 4.557,-2.988 3.287,-5.454l-149.425,-289.436c-8.144,-15.69 -18.529,-30.109 -30.856,-42.81l-308.263,-317.378c-1.121,-1.195 -2.466,-2.167 -3.885,-2.914c-18.305,-9.713 -33.322,-0.971 -51.327,-17.483c-2.615,-2.391 -6.649,-2.466 -9.339,-0.149c-103.551,91.224 -231.982,203.815 -385.292,337.775c-17.259,15.092 -23.31,35.713 -18.006,61.862c0.448,2.316 1.345,4.557 2.615,6.575c7.322,11.431 38.85,63.057 94.661,154.804c29.063,47.741 67.017,86.965 113.936,117.747c6.126,4.034 3.81,13.523 -3.511,14.27c-3.362,0.299 -7.92,0.224 -13.672,-0.299c-45.126,-3.885 -102.879,-9.937 -173.258,-18.23c-35.713,-4.184 -62.46,-8.965 -80.316,-14.27c-68.81,-20.546 -173.93,-139.712 -145.166,-217.338c11.805,-31.977 32.799,-48.488 59.919,-67.241c3.661,-2.466 3.362,-7.994 -0.523,-10.086c-26.224,-13.897 -23.908,-50.431 0.747,-63.431c2.914,-1.569 8.218,-4.034 15.839,-7.546c2.839,-1.345 4.856,-4.109 5.155,-7.322l7.994,-78.149c0.299,-2.988 -0.598,-5.977 -2.466,-8.293c-3.287,-4.856 -9.937,-9.414 -12.626,-14.793c-16.885,-34.144 8.891,-65.971 45.126,-59.471c6.201,1.121 12.552,-0.822 17.034,-5.155c61.414,-59.172 113.638,-109.304 156.597,-150.396c12.328,-11.805 7.172,-31.006 21.069,-45.873c22.862,-24.282 81.362,-81.586 175.574,-172.063c5.603,-5.305 22.19,-10.46 49.833,-15.316c4.259,-0.747 8.293,-2.316 11.879,-4.632l64.327,-40.718c4.856,-3.063 8.443,-7.695 10.236,-13.075c7.994,-23.908 27.121,-38.85 57.304,-44.827c39.299,-7.845 74.115,7.397 88.609,44.379c6.724,17.109 7.77,33.396 3.213,48.787c-1.195,3.96 -0.224,8.293 2.615,11.431l142.327,156.149c2.764,3.063 6.276,5.379 10.161,6.724c18.155,6.425 29.96,12.477 44.977,27.27c41.69,41.017 101.982,99.89 180.804,176.545c7.322,7.172 11.954,16.736 13.075,26.896c1.569,13.822 5.902,27.644 13.149,41.54c129.178,246.924 272.7,521.194 430.717,822.882Z" fill="#f57e25"/>
+<path d="M892.935,721.571l173.109,178.264c0.672,0.747 0.897,1.868 0.374,2.839l-309.16,616.9c-0.374,0.822 -1.27,1.345 -2.167,1.345l-283.907,0c-1.868,0 -3.063,-1.943 -2.167,-3.586l419.958,-795.239c0.747,-1.494 2.764,-1.718 3.96,-0.523Z" fill="#fff"/>
+<path d="M2369.58,1294.507l-414.257,-300.525l-180.767,0l0,527.236l203.363,0l0,-305.797l421.789,305.797l173.235,0l0,-527.236l-203.363,0l0,300.525Z" fill="#fff"/>
+<path d="M2627.172,1363.047c0,108.46 50.464,158.171 158.171,158.171l489.576,0c107.707,0 158.171,-49.711 158.171,-158.171l0,-141.601l-408.231,0l0,114.486l204.869,0l0,10.545c0,26.362 -8.285,34.647 -34.647,34.647l-322.367,0c-26.362,0 -34.647,-8.285 -34.647,-34.647l0,-162.69c0,-26.362 8.285,-34.647 34.647,-34.647l314.835,0c26.362,0 34.647,8.285 34.647,34.647l0,10.545l210.894,0l0,-42.179c0,-108.46 -50.464,-158.171 -158.171,-158.171l-489.576,0c-107.707,0 -158.171,49.711 -158.171,158.171l0,210.894Z" fill="#fff"/>
+<path d="M3698.215,1314.843l466.981,0l0,-120.511l-466.981,0l0,-51.217l497.108,0l0,-149.133l-708.003,0l0,527.236l715.535,0l0,-149.133l-504.64,0l0,-57.243Z" fill="#fff"/>
+<path d="M4458.941,993.982l-210.894,0l0,527.236l677.875,0l0,-173.235l-466.981,0l0,-354.001Z" fill="#fff"/>
+<path d="M555.276,1744.36l126.464,0l0,-53.784l-126.464,0l0,-35.613l141,0l0,-62.142l-219.495,0l0,254.382l223.129,0l0,-62.142l-144.634,0l0,-40.701Z" fill="#f57e25"/>
+<path d="M1011.71,1847.203l-106.477,-254.382l-89.034,0l-106.84,254.382l82.856,0l14.173,-39.611l104.297,0l14.173,39.611l86.853,0Zm-152.993,-183.882l32.343,90.124l-65.049,0l32.706,-90.124Z" fill="#f57e25"/>
+<path d="M2440.973,1847.203c49.786,0 73.407,-22.894 73.407,-73.407l0,-107.567c0,-50.513 -23.621,-73.407 -73.407,-73.407l-118.469,0c-49.786,0 -73.407,22.894 -73.407,73.407l0,107.567c0,50.513 23.621,73.407 73.407,73.407l118.469,0Zm-90.124,-66.503c-17.443,0 -23.258,-5.814 -23.258,-23.258l0,-74.861c0,-17.443 5.814,-23.258 23.258,-23.258l61.778,0c17.08,0 23.258,5.814 23.258,23.258l0,74.861c0,17.443 -6.178,23.258 -23.258,23.258l-61.778,0Z" fill="#f57e25"/>
+<path d="M4799.458,1592.821l-78.495,0l0,254.382l204.959,0l0,-69.41l-126.464,0l0,-184.972Z" fill="#f57e25"/>
+            </svg>
+            <div style="font-size:15px;font-weight:800;color:#fff">${esc(settings.businessName)}</div>
+            ${settings.abn?`<div style="font-size:11px;color:#ffffffcc">ABN: ${esc(settings.abn)}</div>`:""}
+            ${settings.address?`<div style="font-size:11px;color:#ffffffcc">${esc(settings.address)}</div>`:""}
+            ${settings.phone?`<div style="font-size:11px;color:#ffffffcc">${esc(settings.phone)}</div>`:""}
+            ${settings.email?`<div style="font-size:11px;color:#ffffffcc">${esc(settings.email)}</div>`:""}
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10px;color:#ffffffaa;font-weight:700;letter-spacing:1px;text-transform:uppercase">TAX INVOICE</div>
+            <div style="font-size:20px;font-weight:900;color:#fff;margin-top:2px">${esc(inv.invoiceNo)}</div>
+          </div>
         </div>
-        <div style="text-align:right">
-          <div style="color:#6E6B64;font-size:10px">Invoice</div>
-          <div style="color:#F0EDE8;font-weight:700">${inv.invoiceNo}</div>
-          <div style="color:#6E6B64;font-size:10px;margin-top:6px">Issued</div>
-          <div style="color:#F0EDE8">${fmtDate(inv.date)}</div>
-          <div style="color:#6E6B64;font-size:10px;margin-top:6px">Due</div>
-          <div style="color:${inv.status==="Overdue"?"#D93B3B":"#F0EDE8"};font-weight:700">${fmtDate(inv.dueDate)}</div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:14px">
+        <div style="flex:1;background:#1C1C1C;border-radius:10px;padding:12px">
+          <div style="color:#6E6B64;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">BILL TO</div>
+          <div style="color:#F0EDE8;font-weight:700;font-size:13px">${esc(inv.client)}</div>
+          ${inv.clientAddress?`<div style="color:#6E6B64;font-size:11px;margin-top:2px">${esc(inv.clientAddress)}</div>`:""}
+        </div>
+        <div style="background:#1C1C1C;border-radius:10px;padding:12px;text-align:right;min-width:130px">
+          <div style="margin-bottom:6px">
+            <div style="color:#6E6B64;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Issued</div>
+            <div style="color:#F0EDE8;font-size:12px;font-weight:600">${new Date(inv.date).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"})}</div>
+          </div>
+          <div>
+            <div style="color:#6E6B64;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Due</div>
+            <div style="color:#F5C518;font-size:13px;font-weight:800">${new Date(inv.dueDate).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"})}</div>
+          </div>
         </div>
       </div>
-      ${badge(inv.status,col)}
-      <div class="line-items" style="margin-top:12px">
-        <div class="line-item-head"><span>Description</span><span>Amount</span></div>
+
+      <div style="background:#1C1C1C;border-radius:10px;overflow:hidden;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#282828">
+          <div style="font-size:10px;font-weight:800;color:#6E6B64;letter-spacing:1.2px;text-transform:uppercase">DESCRIPTION</div>
+          <div style="font-size:10px;font-weight:800;color:#6E6B64;letter-spacing:1.2px;text-transform:uppercase">AMOUNT</div>
+        </div>
         ${itemRows}
       </div>
-      <div class="totals-box">
-        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:#6E6B64">Subtotal (ex GST)</span><span style="color:#F0EDE8">${fmtCur(inv.subtotal)}</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px"><span style="color:#6E6B64">GST (10%)</span><span style="color:#F0EDE8">${fmtCur(inv.gst)}</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800;color:#22A05A;border-top:1px solid #282828;padding-top:10px"><span>TOTAL DUE</span><span>${fmtCur(inv.totalGST)}</span></div>
+
+      <div style="background:#1C1C1C;border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #282828">
+          <span style="font-size:12px;color:#6E6B64">Subtotal</span>
+          <span style="font-size:12px;color:#F0EDE8;font-weight:600">${fmtCur(inv.subtotal)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #282828">
+          <span style="font-size:12px;color:#6E6B64">GST (10%)</span>
+          <span style="font-size:12px;color:#F0EDE8;font-weight:600">${fmtCur(inv.gst)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0 4px">
+          <span style="font-size:14px;font-weight:800;color:#F0EDE8">TOTAL DUE</span>
+          <span style="font-size:18px;font-weight:900;color:#22A05A">${fmtCur(inv.totalGST)}</span>
+        </div>
       </div>
-      ${(settings.bsb||settings.account)?`
-        <div class="pay-box">
-          <div style="font-size:10px;color:#6E6B64;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Payment Details</div>
-          ${settings.accountName?`<div style="color:#F0EDE8">Account Name: <strong>${esc(settings.accountName)}</strong></div>`:""}
-          ${settings.bsb?`<div style="color:#F0EDE8;margin-top:4px">BSB: <strong>${esc(settings.bsb)}</strong></div>`:""}
-          ${settings.account?`<div style="color:#F0EDE8;margin-top:4px">Account #: <strong>${esc(settings.account)}</strong></div>`:""}
-          <div style="color:#6E6B64;margin-top:6px">Reference: ${inv.invoiceNo}</div>
-        </div>`:""}
-      ${inv.notes?`<div style="font-size:12px;color:#6E6B64;font-style:italic;border-top:1px solid #282828;padding-top:10px;margin-bottom:14px">${esc(inv.notes)}</div>`:""}
-      <div>
-        <div style="font-size:10px;color:#6E6B64;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Update Status</div>
+
+      ${(settings.bank||settings.bsb||settings.accountNo)?`
+      <div style="background:#1C1C1C;border-radius:10px;padding:14px;margin-bottom:14px;border:1px solid #2878CC30">
+        <div style="font-size:10px;font-weight:800;color:#2878CC;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px">💳 PAYMENT DETAILS</div>
+        ${settings.bank?`<div style="display:flex;justify-content:space-between;padding:4px 0"><span style="font-size:12px;color:#6E6B64">Bank</span><span style="font-size:12px;color:#F0EDE8;font-weight:600">${esc(settings.bank)}</span></div>`:""}
+        ${settings.bsb?`<div style="display:flex;justify-content:space-between;padding:4px 0"><span style="font-size:12px;color:#6E6B64">BSB</span><span style="font-size:12px;color:#F0EDE8;font-weight:600">${esc(settings.bsb)}</span></div>`:""}
+        ${settings.accountNo?`<div style="display:flex;justify-content:space-between;padding:4px 0"><span style="font-size:12px;color:#6E6B64">Account No.</span><span style="font-size:14px;color:#F0EDE8;font-weight:800">${esc(settings.accountNo)}</span></div>`:""}
+        <div style="font-size:10px;color:#6E6B64;margin-top:8px">Please use invoice number <strong style="color:#F0EDE8">${esc(inv.invoiceNo)}</strong> as payment reference</div>
+      </div>`:""}
+
+      ${inv.notes?`<div style="font-size:12px;color:#6E6B64;font-style:italic;padding:10px 14px;background:#1C1C1C;border-radius:10px;margin-bottom:14px">${esc(inv.notes)}</div>`:""}
+
+      <div style="padding:10px 0;margin-bottom:14px">
+        <div style="font-size:10px;font-weight:800;color:#6E6B64;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px">Update Status</div>
         <div class="inv-status-row">
           ${INV_STATUS.map(s=>`<button class="btn btn-sm ${inv.status===s?"btn-primary":"btn-ghost"}" onclick="setInvoiceStatus('${inv.id}','${s}');openModal('viewInv','${inv.id}')">${s}</button>`).join("")}
         </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-success" style="flex:1;padding:13px;font-size:14px" onclick="shareInvoice('${inv.id}')">📤 Send Invoice</button>
       </div>`;
   }
   else if(type==="settings"){
@@ -1643,13 +1529,21 @@ function openModal(type, data){
         ${rateField("After-hours Surcharge","afterHoursSurcharge","$/hr")}
         ${rateField("Mobilisation — Local","mobilisationLocal","$")}
         ${rateField("Mobilisation — Regional","mobilisationRegional","$")}
+
+      ${divider("Labour & Day Rates")}
+      <div class="rate-grid">
+        ${rateField("Operator Rate","operatorRate")}
+        ${rateField("Labour Rate","labourRate")}
+        ${rateField("Excavator Day Rate (Dry)","excavatorDayRate","$/day")}
+        ${rateField("Truck Day Rate (Dry)","truckDayRate","$/day")}
       </div>
 
       ${divider("Bank Details")}
+      <div class="field"><label>Bank Name</label><input value="${esc(settings.bank)}" placeholder="e.g. ANZ, CBA, NAB" onchange="saveSetting('bank',this.value)"/></div>
       <div class="field"><label>Account Name</label><input value="${esc(settings.accountName)}" onchange="saveSetting('accountName',this.value)"/></div>
       <div class="field-row">
         <div class="field"><label>BSB</label><input value="${esc(settings.bsb)}" placeholder="000-000" onchange="saveSetting('bsb',this.value)"/></div>
-        <div class="field"><label>Account Number</label><input value="${esc(settings.account)}" onchange="saveSetting('account',this.value)"/></div>
+        <div class="field"><label>Account Number</label><input value="${esc(settings.accountNo||settings.account)}" onchange="saveSetting('accountNo',this.value)"/></div>
       </div>
       <div style="margin-top:6px;display:flex;gap:8px">
         <button class="btn btn-primary" style="flex:1" onclick="closeModal();toast('✓ Settings saved')">Save &amp; Close</button>
@@ -1658,7 +1552,7 @@ function openModal(type, data){
   }
 }
 
-function saveSetting(key,val){settings[key]=val;saveAll();document.getElementById("biz-name").textContent=settings.businessName;}
+function saveSetting(key,val){settings[key]=val;saveAll();var _bn=document.getElementById("biz-name");if(_bn)_bn.textContent=settings.businessName;}
 function updateRate(key,val){settings.rates[key]=parseFloat(val)||0;saveAll();}
 
 function sfUpdateRate(){
@@ -1829,6 +1723,14 @@ function renderDashboard(){
     <div class="card">
       <div class="sec-title" style="margin-bottom:12px">Machine Summary</div>
       ${machineRows}
+    </div>
+
+    <div class="card">
+      <div class="sec-head" style="margin-bottom:12px">
+        <div class="sec-title">📤 Daily Report</div>
+        <button class="btn btn-ghost btn-sm" style="color:#22A05A;border-color:#1A6B3C40" onclick="shareDailyReport()">Share</button>
+      </div>
+      <div style="font-size:12px;color:#6E6B64">Share today's work summary including sessions, hours and engine meter readings.</div>
     </div>`;
 }
 
@@ -1852,10 +1754,11 @@ function renderSessions(){
           <div style="font-size:12px;color:#C8C4BE">${esc(s.client||"")}${s.site?" · "+esc(s.site):""}</div>
           <div style="font-size:11px;color:#6E6B64;margin-top:3px">${fmtDate(s.startTime)} · ${fmtTime(s.startTime)} → ${fmtTime(s.endTime)}${s.operator?" · "+esc(s.operator):""}</div>
           ${s.notes?`<div style="font-size:11px;color:#6E6B64;margin-top:3px;font-style:italic">${esc(s.notes)}</div>`:""}
+          ${s.engineHours?`<div style="font-size:10px;color:#E8580A;margin-top:2px">🔧 Engine: ${s.engineHours} hrs</div>`:""}
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:16px;font-weight:800;color:#22A05A">${fmtCur(s.total)}</div>
-          <div style="font-size:11px;color:#6E6B64;margin-top:2px">${fmtHrs(s.duration)} @ ${fmtCur(s.rate)}/hr</div>
+          <div style="font-size:11px;color:#6E6B64;margin-top:2px">${s.hireType&&s.hireType.startsWith("Day Rate")?"Day rate: $"+s.total.toFixed(2)+" (incl. operator)":fmtHrs(s.duration)+" @ "+fmtCur(s.rate)+"/hr"}</div>
           ${!s.invoiced?`<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
               <button onclick="event.stopPropagation();editSession('${s.id}')" style="background:none;border:1px solid #333;border-radius:6px;color:#C8C4BE;font-size:11px;cursor:pointer;padding:3px 9px">✏️ edit</button>
               <button onclick="event.stopPropagation();deleteSession('${s.id}')" style="background:none;border:none;color:#6E6B64;font-size:11px;cursor:pointer;padding:3px 0">🗑 delete</button>
@@ -1930,6 +1833,8 @@ function renderCrew(){
     </div>`:""}
 
     ${renderCrewPendingRates()}
+
+    ${renderMachineHoursManager()}
 
     <div class="card" style="border-color:#2878CC40;margin-top:4px">
       <div style="font-size:13px;font-weight:800;color:#F0EDE8;margin-bottom:4px">🔑 Crew PIN Management</div>
@@ -2025,6 +1930,35 @@ function renderRates(){
   }).join("");
 
   return `
+    <div class="card" style="border-color:#2878CC40;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:14px;font-weight:800;color:#F0EDE8">👷 Labour & Day Rates</div>
+        <button class="btn btn-ghost btn-sm" onclick="openModal('settings')">Edit</button>
+      </div>
+      <div style="font-size:10px;color:#6E6B64;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px">OPERATOR</div>
+      <div class="rate-row">
+        <div><div style="font-size:13px;color:#F0EDE8">Operator Rate</div><div style="font-size:10px;color:#6E6B64">Charged on top of dry hire</div></div>
+        <div style="text-align:right"><span style="font-size:15px;font-weight:800;color:#22A05A">$${r.operatorRate||60}</span><span style="font-size:11px;color:#6E6B64">/hr</span></div>
+      </div>
+      <div class="rate-row">
+        <div><div style="font-size:13px;color:#F0EDE8">Labour Rate</div><div style="font-size:10px;color:#6E6B64">General labourer / offsider</div></div>
+        <div style="text-align:right"><span style="font-size:15px;font-weight:800;color:#22A05A">$${r.labourRate||45}</span><span style="font-size:11px;color:#6E6B64">/hr</span></div>
+      </div>
+      <div style="font-size:10px;color:#6E6B64;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin:14px 0 10px">DAY RATES</div>
+      <div class="rate-row">
+        <div><div style="font-size:13px;color:#F0EDE8">Excavator Day Rate (Dry)</div><div style="font-size:10px;color:#6E6B64">Machine only — client supplies operator</div></div>
+        <div style="text-align:right"><span style="font-size:15px;font-weight:800;color:#F5C518">$${r.excavatorDayRate||250}</span><span style="font-size:11px;color:#6E6B64">/day</span></div>
+      </div>
+      <div class="rate-row">
+        <div><div style="font-size:13px;color:#F0EDE8">Excavator + Operator (Day)</div><div style="font-size:10px;color:#6E6B64">Machine + operator for full day</div></div>
+        <div style="text-align:right"><span style="font-size:15px;font-weight:800;color:#F5C518">$${(r.excavatorDayRate||250)+(r.operatorRate||60)*8}</span><span style="font-size:11px;color:#6E6B64">/day</span></div>
+      </div>
+      <div class="rate-row">
+        <div><div style="font-size:13px;color:#F0EDE8">Truck Day Rate (Dry)</div><div style="font-size:10px;color:#6E6B64">Hino 700 — client supplies driver</div></div>
+        <div style="text-align:right"><span style="font-size:15px;font-weight:800;color:#F5C518">$${r.truckDayRate||600}</span><span style="font-size:11px;color:#6E6B64">/day</span></div>
+      </div>
+    </div>
+
     <div class="card" style="border-color:#E8580A40;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <div>
@@ -2203,6 +2137,50 @@ function renderCrewPendingRates(){
   </div>`;
 }
 
+function renderMachineHoursManager(){
+  var entries=load("ae_mhours",[]);
+  if(!entries.length) return "";
+  entries.sort(function(a,b){return new Date(b.timestamp)-new Date(a.timestamp);});
+
+  // Group by machine, show latest entry per machine
+  var byMachine={};
+  entries.forEach(function(e){
+    if(!byMachine[e.machine]) byMachine[e.machine]=[];
+    byMachine[e.machine].push(e);
+  });
+
+  var html='<div class="card" style="border-color:#E8580A40;margin-bottom:8px">';
+  html+='<div style="font-size:13px;font-weight:800;color:#F0EDE8;margin-bottom:12px">🔧 Machine Hours Log</div>';
+
+  Object.keys(byMachine).forEach(function(machine){
+    var mEntries=byMachine[machine];
+    var latest=mEntries[0];
+    var typeColors={"Service Done":"#22A05A","Service Due":"#F5C518","Fault Noted":"#D93B3B","Hours Logged":"#E8580A","Other":"#6E6B64"};
+
+    html+='<div style="margin-bottom:12px">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+    html+='<div style="font-size:12px;font-weight:800;color:#F0EDE8">'+esc(machine)+'</div>';
+    if(latest.hours) html+='<div style="font-size:13px;font-weight:800;color:#E8580A">'+latest.hours+' hrs</div>';
+    html+='</div>';
+    mEntries.slice(0,3).forEach(function(e){
+      var col=typeColors[e.type]||"#6E6B64";
+      html+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1C1C1C">';
+      html+='<div>';
+      html+='<span style="font-size:10px;color:'+col+';font-weight:700">'+esc(e.type)+'</span>';
+      html+=' <span style="font-size:10px;color:#6E6B64">'+fmtDate(e.date+"T00:00:00")+'</span>';
+      if(e.notes) html+='<div style="font-size:11px;color:#C8C4BE;margin-top:1px">'+esc(e.notes)+'</div>';
+      html+='<div style="font-size:10px;color:#6E6B64">by '+esc(e.loggedBy||"crew")+'</div>';
+      html+='</div>';
+      if(e.hours) html+='<div style="font-size:12px;color:#E8580A;font-weight:700">'+e.hours+'h</div>';
+      html+='</div>';
+    });
+    if(mEntries.length>3) html+='<div style="font-size:11px;color:#6E6B64;padding-top:4px">+'+( mEntries.length-3)+' more entries</div>';
+    html+='</div>';
+  });
+  html+='</div>';
+  return html;
+}
+
 
 
 // ═══════════════════════════════════════════════════════════════
@@ -2297,7 +2275,7 @@ function openManagerView(){
   document.getElementById("boss-view").style.display="block";
   // Start listening for real-time updates from crew phones
   try{startFirebaseListeners();}catch(e){}
-  document.getElementById("biz-name").textContent=settings.businessName||"Angel Earthworks and Civil";
+  var bn=document.getElementById("biz-name");if(bn)bn.textContent=settings.businessName||"Angel Earthworks and Civil";
   updateBanner();
   if(activeSession) startTimer();
   render();
@@ -2348,6 +2326,31 @@ function doReset(){
   document.getElementById("pin-msg").textContent="Reset done. Manager PIN: 0000";
   PIN=""; drawDots();
   location.reload();
+}
+
+function clearUninvoicedSessions(){
+  if(!confirm("This will permanently delete all sessions that have NOT been invoiced.\n\nInvoiced sessions will be kept.\n\nAre you sure?")) return;
+  // Keep only invoiced sessions
+  var invoicedIds=[];
+  invoices.forEach(function(inv){
+    if(inv.items) inv.items.forEach(function(item){
+      if(item.id) invoicedIds.push(item.id);
+    });
+  });
+  var kept=sessions.filter(function(s){return s.invoiced||invoicedIds.indexOf(s.id)>=0;});
+  var removed=sessions.length-kept.length;
+  sessions=kept;
+  save("ae_sessions",sessions);
+  // Push to Firebase
+  if(typeof db!=="undefined"){
+    db.collection("ae_data").doc("ae_sessions").set({d:JSON.stringify(sessions)})
+      .then(function(){toast("Cleared "+removed+" uninvoiced sessions ✅");})
+      .catch(function(){toast("Cleared locally — Firebase sync may take a moment");});
+  } else {
+    toast("Cleared "+removed+" uninvoiced sessions ✅");
+  }
+  render();
+  closeModal();
 }
 
 // Init — sync from Firebase then show app
@@ -2441,6 +2444,7 @@ function crewDrawTab(){
     if(CREW_TAB==="clock")   el.innerHTML=crewBuildClock();
     else if(CREW_TAB==="history") el.innerHTML=crewBuildHistory();
     else if(CREW_TAB==="manual")  el.innerHTML=crewBuildManual();
+
   }catch(err){
     console.error("Crew tab error:",err);
     el.innerHTML='<div class="card" style="margin-top:20px"><div style="text-align:center;padding:24px;color:#D93B3B"><div style="font-size:24px;margin-bottom:10px">⚠️</div><div>Screen error — tap Lock and try again.</div></div></div>';
@@ -2563,6 +2567,13 @@ function showClockOff(){
   html+='<div id="cco-lrow" style="display:none;justify-content:space-between;font-size:13px;margin-bottom:5px"><span style="color:#6E6B64">Less lunch</span><span style="color:#D93B3B" id="cco-lval">—</span></div>';
   html+='<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;border-top:1px solid #282828;padding-top:10px">';
   html+='<span style="color:#6E6B64">Billable hours</span><span style="color:#22A05A" id="cco-bill">'+fmtHrs(_crewStopRaw)+'</span></div></div>';
+  html+='<div style="background:#0D0D0D;border-radius:10px;padding:14px;margin-bottom:14px;border:1px solid #E8580A40">';
+  html+='<div style="font-size:11px;color:#E8580A;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">🔧 Engine Hours <span style="color:#D93B3B">*</span></div>';
+  html+='<div style="display:flex;gap:10px;align-items:center">';
+  html+='<input type="number" min="0" step="1" placeholder="e.g. 1250" id="cco-eng-hours" style="background:#1C1C1C;border:1px solid #E8580A;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:120px;font-family:inherit;font-size:14px"/>';
+  html+='<span style="font-size:12px;color:#6E6B64">Current meter reading</span>';
+  html+='</div>';
+  html+='<div style="font-size:10px;color:#D93B3B;margin-top:6px">Required — must be entered to save</div></div>';
   html+='<div style="display:flex;gap:10px">';
   html+='<button class="btn btn-success" style="flex:1" onclick="doCrewClockOff()">✅ Confirm & Save</button>';
   html+='<button class="btn btn-ghost" onclick="closeModal()">Cancel</button></div>';
@@ -2588,16 +2599,30 @@ function ccoUpdPreview(){
 function doCrewClockOff(){
   if(!crewClocked) return;
   var bill=Math.max(0,_crewStopRaw-(_crewStopLunch/60));
+  var engHours=gv("cco-eng-hours");
+  if(!engHours){toast("Please enter engine hours","error");return;}
+  if(true){
+    var mhData=getMachineHours();
+    mhData.unshift({
+      id:uid(), machine:crewClocked.machine||"Hitachi ZX55U",
+      type:"Hours Logged", date:new Date().toISOString().split("T")[0],
+      hours:parseFloat(engHours), notes:"End of shift",
+      loggedBy:crewWHO?crewWHO.name:"",
+      timestamp:new Date().toISOString()
+    });
+    saveMachineHours(mhData);
+  }
   // Save as a session in the main sessions array (boss can see it and set rate)
   var entry={
     id:uid(), client:crewClocked.client, site:crewClocked.site,
     machine:crewClocked.machine, attachment:crewClocked.attachment||"General Bucket",
     hireType:"Wet Hire", operator:crewClocked.memberName||"",
     notes:crewClocked.notes||"",
-    rate:0, // rate to be set by manager
+    rate:0,
     startTime:crewClocked.start, endTime:_crewStopEnd,
     duration:bill, rawDuration:_crewStopRaw, lunchBreak:_crewStopLunch,
-    total:0, status:"complete", invoiced:false, fromCrew:true
+    total:0, status:"complete", invoiced:false, fromCrew:true,
+    engineHours:engHours?parseFloat(engHours):null
   };
   sessions.unshift(entry);
   sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});
@@ -2643,9 +2668,10 @@ function crewBuildHistory(){
       if(e.client) html+='<div style="font-size:12px;color:#C8C4BE;margin-top:2px">'+esc(e.client)+(e.site?" · "+esc(e.site):"")+'</div>';
       html+='<div style="font-size:11px;color:#6E6B64;margin-top:3px">'+fmtDate(e.startTime)+" · "+fmtTime(e.startTime)+" → "+fmtTime(e.endTime)+'</div>';
       if(e.notes) html+='<div style="font-size:11px;color:#6E6B64;margin-top:3px;font-style:italic">'+esc(e.notes)+'</div>';
-      html+='</div><div style="text-align:right;flex-shrink:0">';
+      html+='</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">';
       html+='<div style="font-size:15px;font-weight:800;color:#22A05A">'+fmtHrs(e.duration)+'</div>';
       if(e.lunchBreak>0) html+='<div style="font-size:10px;color:#F5C518">☕ '+e.lunchBreak+'min</div>';
+      if(!e.invoiced) html+='<button data-eid="'+e.id+'" onclick="crewDeleteEntry(this.dataset.eid)" style="background:none;border:1px solid #D93B3B40;border-radius:6px;color:#D93B3B;font-size:10px;padding:3px 8px;cursor:pointer;font-family:inherit">✕ Delete</button>';
       html+='</div></div></div>';
     });
   });
@@ -2674,6 +2700,12 @@ function crewBuildManual(){
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">'+lbBtns+'</div>'+
     '<input type="hidden" id="cme-lunch-val" value="0"/></div>'+
     '<div class="field"><label>Notes (optional)</label>'+smartInput("cme-notes","notes","Any notes")+'</div>'+
+    '<div style="background:#0D0D0D;border-radius:10px;padding:14px;margin-bottom:12px">'+
+    '<div style="font-size:11px;color:#E8580A;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">🔧 Engine Hours <span style="color:#D93B3B">*</span></div>'+
+    '<div style="display:flex;gap:10px;align-items:center">'+
+    '<input type="number" min="0" step="1" placeholder="e.g. 1250" id="cme-eng-hours" style="background:#1C1C1C;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:120px;font-family:inherit;font-size:14px"/>'+
+    '<span style="font-size:12px;color:#6E6B64">Log current meter reading</span>'+
+    '</div></div>'+
     '<button class="btn btn-success" style="width:100%;padding:13px;font-size:15px" onclick="doCrewSaveManual()">Save Entry</button>'+
     '</div>';
 }
@@ -2695,8 +2727,10 @@ function doCrewSaveManual(){
   var startT=gv("cme-start")||"";
   var endT=gv("cme-end")||"";
   if(!date||!startT||!endT){toast("Please enter date, start and end time","error");return;}
-  var sISO=new Date(date+"T"+startT).toISOString();
-  var eISO=new Date(date+"T"+endT).toISOString();
+  var manualEngHoursCheck=gv("cme-eng-hours");
+  if(!manualEngHoursCheck){toast("Please enter engine hours","error");return;}
+  var sISO=localISO(date,startT);
+  var eISO=localISO(date,endT);
   if(new Date(eISO)<=new Date(sISO)){toast("End must be after start","error");return;}
   var raw=(new Date(eISO)-new Date(sISO))/3600000;
   var lunch=parseInt(gv("cme-lunch-val"))||0;
@@ -2705,10 +2739,19 @@ function doCrewSaveManual(){
   var attach=machine!=="Hino 700"?(gv("cme-attach")||"General Bucket"):"";
   var notes=gv("cme-notes")||"";
   addHistory("clients",client.trim()); addHistory("sites",site.trim());
+  var manualEngHours=gv("cme-eng-hours");
+  if(manualEngHours){
+    var mhd=getMachineHours();
+    mhd.unshift({id:uid(),machine:machine,type:"Hours Logged",
+      date:date,hours:parseFloat(manualEngHours),notes:"Manual entry",
+      loggedBy:crewWHO?crewWHO.name:"",timestamp:new Date().toISOString()});
+    saveMachineHours(mhd);
+  }
   sessions.unshift({id:uid(),client:client.trim(),site:site.trim(),machine:machine,
     attachment:attach,hireType:"Wet Hire",operator:crewWHO.name,notes:notes.trim(),
     rate:0,startTime:sISO,endTime:eISO,duration:dur,rawDuration:raw,lunchBreak:lunch,
-    total:0,status:"complete",invoiced:false,fromCrew:true});
+    total:0,status:"complete",invoiced:false,fromCrew:true,
+    engineHours:manualEngHours?parseFloat(manualEngHours):null});
   sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});
   save("ae_sessions",sessions);
   crewNav(1);
@@ -2725,6 +2768,7 @@ function crewBuildShareText(name,ents){
     lines.push((i+1)+". "+fmtDate(e.startTime)+" "+fmtTime(e.startTime)+"–"+fmtTime(e.endTime));
     lines.push("   "+(e.machine||"")+(e.client?" | "+e.client:"")+(e.site?" | "+e.site:""));
     lines.push("   Hours: "+fmtHrs(e.duration)+(e.lunchBreak>0?" (excl. "+e.lunchBreak+"min lunch)":""));
+    if(e.engineHours) lines.push("   Engine Hrs: "+e.engineHours+"h");
     lines.push("");
   });
   lines.push("━━━━━━━━━━━━━━━━━━━━━━━");
@@ -2781,6 +2825,326 @@ try{
 
 
 
+
+
+// ── Machine Hours (Crew) ──────────────────────────────────
+// Stored in ae_mhours: [{id, machine, date, hours, notes, type, loggedBy, timestamp}]
+// Types: "Service Due", "Service Done", "Hours Logged", "Fault Noted"
+
+function getMachineHours(){
+  return load("ae_mhours",[]);
+}
+function saveMachineHours(data){
+  save("ae_mhours",data);
+}
+
+function crewBuildMachineHours(){
+  var entries=getMachineHours();
+  entries.sort(function(a,b){return new Date(b.timestamp)-new Date(a.timestamp);});
+
+  var machOpts=MACHINES.map(function(m){return '<option>'+m+'</option>';}).join("");
+  var typeOpts=["Hours Logged","Service Done","Service Due","Fault Noted","Other"].map(function(t){
+    return '<option>'+t+'</option>';
+  }).join("");
+
+  var html='<div class="card" style="margin-bottom:12px">';
+  html+='<div style="font-size:13px;font-weight:800;color:#F0EDE8;margin-bottom:14px">🔧 Log Machine Hours</div>';
+  html+='<div class="field"><label>Machine</label><select id="mh-machine" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit">'+machOpts+'</select></div>';
+  html+='<div class="field"><label>Entry Type</label><select id="mh-type" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit">'+typeOpts+'</select></div>';
+  html+='<div style="display:flex;gap:10px"><div class="field" style="flex:1"><label>Date</label><input id="mh-date" type="date" value="'+new Date().toISOString().split("T")[0]+'" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit"/></div>';
+  html+='<div class="field" style="flex:1"><label>Engine Hours</label><input id="mh-hours" type="number" min="0" step="0.1" placeholder="e.g. 1250" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit"/></div></div>';
+  html+='<div class="field"><label>Notes</label><input id="mh-notes" placeholder="e.g. 1000hr service completed, oil changed" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit"/></div>';
+  html+='<button class="btn btn-success" style="width:100%;padding:13px;font-size:15px" onclick="doSaveMachineHours()">💾 Save Entry</button>';
+  html+='</div>';
+
+  // Group by machine
+  var byMachine={};
+  entries.forEach(function(e){
+    if(!byMachine[e.machine]) byMachine[e.machine]=[];
+    byMachine[e.machine].push(e);
+  });
+
+  if(entries.length===0){
+    html+='<div class="card"><div class="empty"><div class="empty-icon">🔧</div><div>No machine hour entries yet.<br/>Log hours after each shift.</div></div></div>';
+    return html;
+  }
+
+  Object.keys(byMachine).forEach(function(machine){
+    var mEntries=byMachine[machine];
+    var latest=mEntries[0];
+    html+='<div class="card" style="margin-bottom:8px">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+    html+='<div style="font-size:13px;font-weight:800;color:#F0EDE8">'+esc(machine)+'</div>';
+    if(latest.hours) html+='<div style="font-size:12px;color:#E8580A;font-weight:700">Latest: '+latest.hours+'h</div>';
+    html+='</div>';
+    mEntries.slice(0,5).forEach(function(e){
+      var typeColors={"Service Done":"#22A05A","Service Due":"#F5C518","Fault Noted":"#D93B3B","Hours Logged":"#E8580A","Other":"#6E6B64"};
+      var col=typeColors[e.type]||"#6E6B64";
+      html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #1C1C1C">';
+      html+='<div><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">';
+      html+='<span style="font-size:10px;font-weight:700;color:'+col+';background:'+col+'22;padding:2px 8px;border-radius:10px">'+esc(e.type)+'</span>';
+      html+='</div>';
+      html+='<div style="font-size:11px;color:#6E6B64">'+fmtDate(e.date+'T00:00:00')+'</div>';
+      if(e.notes) html+='<div style="font-size:11px;color:#C8C4BE;margin-top:2px">'+esc(e.notes)+'</div>';
+      html+='<div style="font-size:10px;color:#6E6B64;margin-top:1px">Logged by: '+esc(e.loggedBy||"")+'</div>';
+      html+='</div>';
+      if(e.hours) html+='<div style="font-size:14px;font-weight:800;color:#E8580A">'+e.hours+'h</div>';
+      html+='</div>';
+    });
+    if(mEntries.length>5){
+      html+='<div style="font-size:11px;color:#6E6B64;text-align:center;padding:8px 0">+'+( mEntries.length-5)+' more entries</div>';
+    }
+    html+='</div>';
+  });
+
+  return html;
+}
+
+function doSaveMachineHours(){
+  var machine=gv("mh-machine")||"Hitachi ZX55U";
+  var type=gv("mh-type")||"Hours Logged";
+  var date=gv("mh-date")||new Date().toISOString().split("T")[0];
+  var hours=gv("mh-hours");
+  var notes=gvt("mh-notes");
+  if(!hours&&!notes){toast("Please enter hours or notes","error");return;}
+  var data=getMachineHours();
+  data.unshift({
+    id:uid(), machine:machine, type:type, date:date,
+    hours:hours?parseFloat(hours):null, notes:notes,
+    loggedBy:crewWHO?crewWHO.name:"",
+    timestamp:new Date().toISOString()
+  });
+  saveMachineHours(data);
+  crewNav(3);
+  toast("Saved ✅");
+}
+
+
+// ── Daily Report ──────────────────────────────────────────────
+function shareDailyReport(){
+  var today=new Date();
+  var todayStr=today.toDateString();
+  var todaySessions=sessions.filter(function(s){
+    return new Date(s.startTime).toDateString()===todayStr;
+  });
+
+  // If no sessions today, offer last 7 days
+  if(!todaySessions.length){
+    var weekAgo=Date.now()-7*86400000;
+    todaySessions=sessions.filter(function(s){
+      return new Date(s.startTime).getTime()>=weekAgo;
+    });
+    if(!todaySessions.length){
+      toast("No sessions to report","error");
+      return;
+    }
+  }
+
+  todaySessions.sort(function(a,b){return new Date(a.startTime)-new Date(b.startTime);});
+
+  var dateLabel=today.toLocaleDateString("en-AU",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+  var lines=[
+    "━━━━━━━━━━━━━━━━━━━━━━━",
+    "ANGEL EARTHWORKS & CIVIL",
+    "Daily Work Report",
+    dateLabel,
+    "━━━━━━━━━━━━━━━━━━━━━━━",
+    ""
+  ];
+
+  var totalHrs=0;
+  var totalRev=0;
+
+  todaySessions.forEach(function(s,i){
+    lines.push((i+1)+". "+esc(s.machine)+(s.attachment&&s.attachment!=="General Bucket"?" ("+s.attachment+")":""));
+    lines.push("   Client: "+(s.client||"Not specified")+(s.site?" | "+s.site:""));
+    lines.push("   Operator: "+(s.operator||"Not assigned"));
+    lines.push("   Time: "+fmtTime(s.startTime)+" → "+fmtTime(s.endTime));
+    lines.push("   Hours: "+fmtHrs(s.duration)+(s.lunchBreak>0?" (excl. "+s.lunchBreak+"min lunch)":""));
+    if(s.engineHours) lines.push("   🔧 Engine Meter: "+s.engineHours+" hrs");
+    if(s.hireType) lines.push("   Hire: "+s.hireType+(s.hireType.startsWith("Day Rate")?" — $"+s.total.toFixed(2)+" flat day rate":(s.rate?" @ $"+s.rate+"/hr":"")));
+    if(s.total) lines.push("   Total: $"+s.total.toFixed(2)+" ex GST");
+    if(s.notes) lines.push("   Notes: "+s.notes);
+    lines.push("");
+    totalHrs+=s.duration||0;
+    totalRev+=s.total||0;
+  });
+
+  lines.push("━━━━━━━━━━━━━━━━━━━━━━━");
+  lines.push("TOTAL HOURS: "+fmtHrs(totalHrs));
+  if(totalRev>0) lines.push("TOTAL REVENUE: $"+totalRev.toFixed(2)+" ex GST");
+
+  // Add ALL machine hours logged (from ae_mhours - crew clock-off entries)
+  var allMH=load("ae_mhours",[]);
+  // Group by machine, show latest reading per machine
+  var latestByMachine={};
+  allMH.forEach(function(e){
+    if(!latestByMachine[e.machine]||new Date(e.timestamp)>new Date(latestByMachine[e.machine].timestamp)){
+      latestByMachine[e.machine]=e;
+    }
+  });
+  var mhKeys=Object.keys(latestByMachine);
+  if(mhKeys.length){
+    lines.push("");
+    lines.push("🔧 CURRENT ENGINE HOUR READINGS:");
+    mhKeys.forEach(function(machine){
+      var e=latestByMachine[machine];
+      lines.push("   "+machine+": "+e.hours+" hrs ("+e.type+", "+fmtDate(e.date+"T00:00:00")+" by "+e.loggedBy+")");
+    });
+  }
+  // Also show today's specific engine hour entries
+  var mhToday=allMH.filter(function(e){
+    return new Date(e.timestamp).toDateString()===todayStr;
+  });
+  if(mhToday.length){
+    lines.push("");
+    lines.push("🔧 ENGINE HOURS LOGGED TODAY:");
+    mhToday.forEach(function(e){
+      lines.push("   "+e.machine+": "+e.hours+"hrs — "+e.type+(e.notes?" ("+e.notes+")":"")+" by "+e.loggedBy);
+    });
+  }
+
+  lines.push("━━━━━━━━━━━━━━━━━━━━━━━");
+
+  var text=lines.join("\n");
+
+  if(navigator.share){
+    navigator.share({title:"Angel Earthworks Daily Report",text:text}).catch(function(){});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){
+      toast("Report copied to clipboard 📋");
+    });
+  } else {
+    // Fallback - show in modal
+    openModal("📤 Daily Report");
+    document.getElementById("modal-body").innerHTML=
+      '<div style="font-size:12px;color:#6E6B64;margin-bottom:10px">Press and hold to select all, then copy.</div>'+
+      '<textarea readonly onclick="this.select()" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:12px;width:100%;height:300px;font-size:11px;line-height:1.7;font-family:monospace;resize:none">'+
+      text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</textarea>'+
+      '<button class="btn btn-success" style="width:100%;margin-top:12px" onclick="closeModal()">Done</button>';
+  }
+}
+
+
+function crewDeleteEntry(id){
+  if(!id) return;
+  var entry=sessions.find(function(s){return s.id===id;});
+  if(!entry){toast("Entry not found","error");return;}
+  if(entry.invoiced){toast("Cannot delete - already invoiced","error");return;}
+  if(!confirm("Delete this shift?\n"+fmtDate(entry.startTime)+" "+fmtHrs(entry.duration))) return;
+  sessions=sessions.filter(function(s){return s.id!==id;});
+  save("ae_sessions",sessions);
+  crewNav(1);
+  toast("Entry deleted");
+}
+
+function shareInvoice(id){
+  var inv=invoices.find(function(i){return i.id===id;});
+  if(!inv) return;
+
+  var biz=settings.businessName||"Angel Earthworks and Civil";
+  var abn=settings.abn?"ABN: "+settings.abn:"";
+  var phone=settings.phone||"";
+  var email=settings.email||"";
+  var bank=settings.bank?"Bank: "+settings.bank:"";
+  var bsb=settings.bsb?"BSB: "+settings.bsb:"";
+  var acct=settings.accountNo?"Account: "+settings.accountNo:"";
+
+  var lines=[
+    "━━━━━━━━━━━━━━━━━━━━━━━",
+    "TAX INVOICE",
+    biz,
+    abn,
+    phone,email,
+    "━━━━━━━━━━━━━━━━━━━━━━━",
+    "",
+    "Invoice No: "+inv.invoiceNo,
+    "Date: "+new Date(inv.date).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"}),
+    "Due: "+new Date(inv.dueDate).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"}),
+    "",
+    "Bill To: "+inv.client,
+    inv.clientAddress?"Address: "+inv.clientAddress:"",
+    "",
+    "━━━━━━━━━━━━━━━━━━━━━━━",
+    "SERVICES:",
+    ""
+  ];
+
+  inv.items.forEach(function(item,i){
+    lines.push((i+1)+". "+item.machine+(item.attachment&&item.attachment!=="General Bucket"?" ("+item.attachment+")":"")+" — "+item.hireType);
+    lines.push("   Date: "+new Date(item.startTime).toLocaleDateString("en-AU",{day:"2-digit",month:"short"}));
+    lines.push("   "+( item.hireType&&item.hireType.startsWith("Day Rate")?"Day Rate: $"+item.total.toFixed(2)+" (Machine $"+(settings.rates.excavatorDayRate||250)+"/day + Operator "+fmtHrs(item.duration)+" @ $"+(settings.rates.operatorRate||60)+"/hr)":"Hours: "+fmtHrs(item.duration)+" @ $"+item.rate+"/hr"));
+    lines.push("   Amount: $"+item.total.toFixed(2));
+    lines.push("");
+  });
+
+  lines.push("━━━━━━━━━━━━━━━━━━━━━━━");
+  lines.push("Subtotal:   $"+inv.subtotal.toFixed(2));
+  lines.push("GST (10%):  $"+inv.gst.toFixed(2));
+  lines.push("TOTAL DUE:  $"+inv.totalGST.toFixed(2));
+  lines.push("━━━━━━━━━━━━━━━━━━━━━━━");
+  lines.push("");
+
+  if(bank||bsb||acct){
+    lines.push("PAYMENT DETAILS:");
+    if(bank) lines.push(bank);
+    if(bsb) lines.push(bsb);
+    if(acct) lines.push(acct);
+    lines.push("");
+  }
+
+  if(inv.notes) lines.push("Notes: "+inv.notes);
+  lines.push("Thank you for your business.");
+
+  var text=lines.filter(function(l){return l!==undefined&&l!=="";}).join("\n");
+
+  if(navigator.share){
+    navigator.share({
+      title:"Invoice "+inv.invoiceNo+" — "+biz,
+      text:text
+    }).catch(function(){});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){
+      toast("Invoice copied to clipboard 📋");
+    });
+  } else {
+    openModal("📤 Send Invoice — "+inv.invoiceNo);
+    document.getElementById("modal-body").innerHTML=
+      '<div style="font-size:12px;color:#6E6B64;margin-bottom:10px">Press and hold → Select All → Copy. Then paste into WhatsApp, email or SMS.</div>'+
+      '<textarea readonly onclick="this.select()" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:12px;width:100%;height:320px;font-size:11px;line-height:1.7;font-family:monospace;resize:none">'+
+      text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</textarea>'+
+      '<button class="btn btn-success" style="width:100%;margin-top:12px" onclick="closeModal()">Done</button>';
+  }
+}
+
+
+function edHireChange(hireType){
+  var machine=gv("ed-machine")||"Hitachi ZX55U";
+  var attach=gv("ed-attachment")||"General Bucket";
+  var rateEl=document.getElementById("ed-rate");
+  var labelEl=document.getElementById("ed-rate-label");
+  if(!rateEl) return;
+  var r=settings.rates;
+  if(hireType==="Day Rate (Dry + Operator)"){
+    var machRate=machine==="Hino 700"?(r.truckDayRate||600):(r.excavatorDayRate||250);
+    var opRate=r.operatorRate||60;
+    if(labelEl) labelEl.textContent="Machine day rate (ex GST) — operator added on actual hours";
+    rateEl.value=machRate;
+    // Show preview note
+    var note=document.getElementById("ed-rate-note");
+    if(note) note.textContent="Total = $"+machRate+" machine + ($"+opRate+"/hr × actual hours)";
+  } else if(hireType==="Day Rate (Machine Only)"){
+    if(labelEl) labelEl.textContent="Machine day rate (ex GST)";
+    rateEl.value=machine==="Hino 700"?(r.truckDayRate||600):(r.excavatorDayRate||250);
+    var note2=document.getElementById("ed-rate-note");
+    if(note2) note2.textContent="";
+  } else {
+    if(labelEl) labelEl.textContent="Rate ($/hr ex GST)";
+    rateEl.value=lookupRate(machine,hireType,attach);
+    var note3=document.getElementById("ed-rate-note");
+    if(note3) note3.textContent="";
+  }
+}
 
 </script>
 </body>
