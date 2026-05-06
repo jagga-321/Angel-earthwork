@@ -50,7 +50,7 @@ window.onunhandledrejection=function(e){
 };
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v5-2026"/>
+<meta name="version" content="v8-2026-05"/>
 
 <style>
 
@@ -341,6 +341,7 @@ select option{background:#1a1a1a;color:#F0EDE8}
     <button class="nav-tab" data-tab="crew" onclick="switchTab('crew')">👷 Crew</button>
     <button class="nav-tab" data-tab="invoices" onclick="switchTab('invoices')">🧾 Invoices</button>
     <button class="nav-tab" data-tab="rates" onclick="switchTab('rates')">💲 Rates</button>
+    <button class="nav-tab" data-tab="quotes" onclick="switchTab('quotes')">📋 Quotes</button>
   </div>
   <div id="main"></div>
 </div>
@@ -374,7 +375,7 @@ var DR = {
 var DS = {
   businessName:"Angel Earthworks and Civil", abn:"",
   address:"Victor Harbor / Goolwa SA 5211", phone:"", email:"",
-  accountName:"", bsb:"", accountNo:"", bank:"", nextInvoice:1,
+  accountName:"Angel Earthworks and Civil", bsb:"085-005", accountNo:"289 498 929", bank:"NAB", nextInvoice:1, nextQuote:1,
   rates:{...DR}
 };
 
@@ -414,7 +415,7 @@ function save(k,v){
 // Sync latest data from Firebase into this phone
 function syncFromFirebase(cb){
   if(typeof db==="undefined"){if(cb)cb();return;}
-  var keys=["ae_sessions","ae_crew","ae_invoices","ae_settings","ae_pins"];
+  var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_settings","ae_pins"];
   var done=0;
   keys.forEach(function(k){
     db.collection("ae_data").doc(k).get()
@@ -433,7 +434,7 @@ function syncFromFirebase(cb){
 // Real-time listener — updates this phone when another phone saves data
 function startFirebaseListeners(){
   if(typeof db==="undefined") return;
-  var keys=["ae_sessions","ae_crew","ae_invoices","ae_settings","ae_pins"];
+  var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_settings","ae_pins"];
   keys.forEach(function(k){
     db.collection("ae_data").doc(k).onSnapshot(function(doc){
       if(!doc.exists) return;
@@ -459,7 +460,7 @@ function startFirebaseListeners(){
 
 // ── Fresh start: wipe all old data from previous app versions ──
 try{
-  var APP_VER="firebase_v6";
+  var APP_VER="firebase_v8";
   if(localStorage.getItem("ae_app_ver")!==APP_VER){
     var keys=["ae_sessions","ae_crew","ae_invoices","ae_settings","ae_active",
               "ae_history","ae_pins","ae_ents","ae_clocked","ae_hist","ae_mgr"];
@@ -533,6 +534,7 @@ function saveAll(){
   save("ae_sessions",sessions);
   save("ae_crew",crew);
   save("ae_invoices",invoices);
+  save("ae_quotes",quotes);
   save("ae_settings",settings);
   save("ae_active",activeSession);
 }
@@ -1392,16 +1394,28 @@ function openModal(type, data){
           <div style="flex:1">
             <svg viewBox="0 500 5153 1600" style="height:44px;width:auto;max-width:180px;display:block;margin-bottom:8px" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
 <path d="M1742.49,1517.408c0.897,1.718 -0.374,3.81 -2.316,3.81l-279.126,0c-4.034,0 -7.695,-2.241 -9.563,-5.828l-56.557,-109.528c-2.092,-4.034 -6.276,-6.5 -10.759,-6.5l-466.803,0c-3.437,0 -5.678,-3.661 -4.109,-6.724l99.816,-188.948c2.54,-4.782 7.471,-7.77 12.776,-7.77l261.792,0c2.764,0 4.557,-2.988 3.287,-5.454l-149.425,-289.436c-8.144,-15.69 -18.529,-30.109 -30.856,-42.81l-308.263,-317.378c-1.121,-1.195 -2.466,-2.167 -3.885,-2.914c-18.305,-9.713 -33.322,-0.971 -51.327,-17.483c-2.615,-2.391 -6.649,-2.466 -9.339,-0.149c-103.551,91.224 -231.982,203.815 -385.292,337.775c-17.259,15.092 -23.31,35.713 -18.006,61.862c0.448,2.316 1.345,4.557 2.615,6.575c7.322,11.431 38.85,63.057 94.661,154.804c29.063,47.741 67.017,86.965 113.936,117.747c6.126,4.034 3.81,13.523 -3.511,14.27c-3.362,0.299 -7.92,0.224 -13.672,-0.299c-45.126,-3.885 -102.879,-9.937 -173.258,-18.23c-35.713,-4.184 -62.46,-8.965 -80.316,-14.27c-68.81,-20.546 -173.93,-139.712 -145.166,-217.338c11.805,-31.977 32.799,-48.488 59.919,-67.241c3.661,-2.466 3.362,-7.994 -0.523,-10.086c-26.224,-13.897 -23.908,-50.431 0.747,-63.431c2.914,-1.569 8.218,-4.034 15.839,-7.546c2.839,-1.345 4.856,-4.109 5.155,-7.322l7.994,-78.149c0.299,-2.988 -0.598,-5.977 -2.466,-8.293c-3.287,-4.856 -9.937,-9.414 -12.626,-14.793c-16.885,-34.144 8.891,-65.971 45.126,-59.471c6.201,1.121 12.552,-0.822 17.034,-5.155c61.414,-59.172 113.638,-109.304 156.597,-150.396c12.328,-11.805 7.172,-31.006 21.069,-45.873c22.862,-24.282 81.362,-81.586 175.574,-172.063c5.603,-5.305 22.19,-10.46 49.833,-15.316c4.259,-0.747 8.293,-2.316 11.879,-4.632l64.327,-40.718c4.856,-3.063 8.443,-7.695 10.236,-13.075c7.994,-23.908 27.121,-38.85 57.304,-44.827c39.299,-7.845 74.115,7.397 88.609,44.379c6.724,17.109 7.77,33.396 3.213,48.787c-1.195,3.96 -0.224,8.293 2.615,11.431l142.327,156.149c2.764,3.063 6.276,5.379 10.161,6.724c18.155,6.425 29.96,12.477 44.977,27.27c41.69,41.017 101.982,99.89 180.804,176.545c7.322,7.172 11.954,16.736 13.075,26.896c1.569,13.822 5.902,27.644 13.149,41.54c129.178,246.924 272.7,521.194 430.717,822.882Z" fill="#f57e25"/>
-<path d="M892.935,721.571l173.109,178.264c0.672,0.747 0.897,1.868 0.374,2.839l-309.16,616.9c-0.374,0.822 -1.27,1.345 -2.167,1.345l-283.907,0c-1.868,0 -3.063,-1.943 -2.167,-3.586l419.958,-795.239c0.747,-1.494 2.764,-1.718 3.96,-0.523Z" fill="#fff"/>
-<path d="M2369.58,1294.507l-414.257,-300.525l-180.767,0l0,527.236l203.363,0l0,-305.797l421.789,305.797l173.235,0l0,-527.236l-203.363,0l0,300.525Z" fill="#fff"/>
-<path d="M2627.172,1363.047c0,108.46 50.464,158.171 158.171,158.171l489.576,0c107.707,0 158.171,-49.711 158.171,-158.171l0,-141.601l-408.231,0l0,114.486l204.869,0l0,10.545c0,26.362 -8.285,34.647 -34.647,34.647l-322.367,0c-26.362,0 -34.647,-8.285 -34.647,-34.647l0,-162.69c0,-26.362 8.285,-34.647 34.647,-34.647l314.835,0c26.362,0 34.647,8.285 34.647,34.647l0,10.545l210.894,0l0,-42.179c0,-108.46 -50.464,-158.171 -158.171,-158.171l-489.576,0c-107.707,0 -158.171,49.711 -158.171,158.171l0,210.894Z" fill="#fff"/>
-<path d="M3698.215,1314.843l466.981,0l0,-120.511l-466.981,0l0,-51.217l497.108,0l0,-149.133l-708.003,0l0,527.236l715.535,0l0,-149.133l-504.64,0l0,-57.243Z" fill="#fff"/>
-<path d="M4458.941,993.982l-210.894,0l0,527.236l677.875,0l0,-173.235l-466.981,0l0,-354.001Z" fill="#fff"/>
+<path d="M892.935,721.571l173.109,178.264c0.672,0.747 0.897,1.868 0.374,2.839l-309.16,616.9c-0.374,0.822 -1.27,1.345 -2.167,1.345l-283.907,0c-1.868,0 -3.063,-1.943 -2.167,-3.586l419.958,-795.239c0.747,-1.494 2.764,-1.718 3.96,-0.523Z" fill="#ffffff"/>
+<path d="M2369.58,1294.507l-414.257,-300.525l-180.767,0l0,527.236l203.363,0l0,-305.797l421.789,305.797l173.235,0l0,-527.236l-203.363,0l0,300.525Z" fill="#ffffff"/>
+<path d="M2627.172,1363.047c0,108.46 50.464,158.171 158.171,158.171l489.576,0c107.707,0 158.171,-49.711 158.171,-158.171l0,-141.601l-408.231,0l0,114.486l204.869,0l0,10.545c0,26.362 -8.285,34.647 -34.647,34.647l-322.367,0c-26.362,0 -34.647,-8.285 -34.647,-34.647l0,-162.69c0,-26.362 8.285,-34.647 34.647,-34.647l314.835,0c26.362,0 34.647,8.285 34.647,34.647l0,10.545l210.894,0l0,-42.179c0,-108.46 -50.464,-158.171 -158.171,-158.171l-489.576,0c-107.707,0 -158.171,49.711 -158.171,158.171l0,210.894Z" fill="#ffffff"/>
+<path d="M3698.215,1314.843l466.981,0l0,-120.511l-466.981,0l0,-51.217l497.108,0l0,-149.133l-708.003,0l0,527.236l715.535,0l0,-149.133l-504.64,0l0,-57.243Z" fill="#ffffff"/>
+<path d="M4458.941,993.982l-210.894,0l0,527.236l677.875,0l0,-173.235l-466.981,0l0,-354.001Z" fill="#ffffff"/>
 <path d="M555.276,1744.36l126.464,0l0,-53.784l-126.464,0l0,-35.613l141,0l0,-62.142l-219.495,0l0,254.382l223.129,0l0,-62.142l-144.634,0l0,-40.701Z" fill="#f57e25"/>
 <path d="M1011.71,1847.203l-106.477,-254.382l-89.034,0l-106.84,254.382l82.856,0l14.173,-39.611l104.297,0l14.173,39.611l86.853,0Zm-152.993,-183.882l32.343,90.124l-65.049,0l32.706,-90.124Z" fill="#f57e25"/>
 <path d="M2440.973,1847.203c49.786,0 73.407,-22.894 73.407,-73.407l0,-107.567c0,-50.513 -23.621,-73.407 -73.407,-73.407l-118.469,0c-49.786,0 -73.407,22.894 -73.407,73.407l0,107.567c0,50.513 23.621,73.407 73.407,73.407l118.469,0Zm-90.124,-66.503c-17.443,0 -23.258,-5.814 -23.258,-23.258l0,-74.861c0,-17.443 5.814,-23.258 23.258,-23.258l61.778,0c17.08,0 23.258,5.814 23.258,23.258l0,74.861c0,17.443 -6.178,23.258 -23.258,23.258l-61.778,0Z" fill="#f57e25"/>
+<path d="M1229.388,1758.169c31.979,-5.451 46.152,-25.075 46.152,-64.686l0,-34.523c0,-46.516 -19.624,-66.139 -66.139,-66.139l-180.975,0l0,254.382l78.495,0l0,-81.766l43.608,0l50.876,81.766l85.036,0l-57.054,-89.034Zm-51.967,-107.567c14.9,0 19.624,4.724 19.624,19.624l0,19.624c0,14.9 -4.724,19.624 -19.624,19.624l-70.5,0l0,-58.871l70.5,0Z" fill="#f57e25"/>
+<path d="M1295.164,1592.821l0,69.41l82.129,0l0,184.972l78.495,0l0,-184.972l82.129,0l0,-69.41l-242.753,0Z" fill="#f57e25"/>
+<path d="M1735.608,1680.764l-97.392,0l0,-87.943l-78.495,0l0,254.382l78.495,0l0,-96.665l97.392,0l0,96.665l78.495,0l0,-254.382l-78.495,0l0,87.943Z" fill="#f57e25"/>
+<path d="M2116.091,1738.545l-47.969,-145.725l-57.781,0l-47.242,145.725l-45.062,-145.725l-85.763,0l90.487,254.382l67.956,0l46.879,-138.82l46.879,138.82l67.956,0l90.487,-254.382l-81.766,0l-45.062,145.725Z" fill="#f57e25"/>
+<path d="M2746.959,1758.169c31.979,-5.451 46.152,-25.075 46.152,-64.686l0,-34.523c0,-46.516 -19.624,-66.139 -66.139,-66.139l-180.975,0l0,254.382l78.495,0l0,-81.766l43.608,0l50.876,81.766l85.036,0l-57.054,-89.034Zm-51.967,-107.567c14.9,0 19.624,4.724 19.624,19.624l0,19.624c0,14.9 -4.724,19.624 -19.624,19.624l-70.5,0l0,-58.871l70.5,0Z" fill="#f57e25"/>
+<path d="M2988.985,1715.287l106.84,-122.467l-99.209,0l-90.851,115.926l0,-115.926l-78.495,0l0,254.382l78.495,0l0,-121.377l92.304,121.377l99.209,0l-108.294,-131.915Z" fill="#f57e25"/>
+<path d="M3098.733,1789.785c0,39.611 18.17,57.418 57.418,57.418l143.181,0c39.248,0 57.418,-17.807 57.418,-57.418l0,-38.884c0,-39.248 -16.717,-54.147 -57.418,-57.418l-102.48,-9.085c-11.992,-1.09 -15.99,-4.361 -15.99,-15.99l0,-4.724c0,-11.992 3.997,-15.99 15.99,-15.99l63.232,0c11.992,0 15.99,3.997 15.99,15.99l0,7.268l75.588,0l0,-20.714c0,-39.611 -18.17,-57.418 -57.418,-57.418l-134.459,0c-39.248,0 -57.418,17.807 -57.418,57.418l0,34.16c0,38.884 16.717,53.42 57.418,57.418l102.48,9.085c12.719,1.09 15.99,3.997 15.99,15.99l0,9.085c0,11.992 -3.997,15.99 -15.99,15.99l-71.954,0c-11.992,0 -15.99,-3.997 -15.99,-15.99l0,-10.539l-75.588,0l0,24.348Z" fill="#f57e25"/>
+<path d="M3596.231,1693.847c-11.992,0 -15.99,-3.997 -15.99,-15.99l0,-14.173c0,-11.992 3.997,-15.99 15.99,-15.99l45.789,0c12.719,0 15.99,3.997 15.99,15.99l0,7.268l72.681,0l0,-20.714c0,-39.611 -18.17,-57.418 -57.418,-57.418l-111.201,0c-39.248,0 -57.418,17.807 -57.418,57.418l0,18.534c0,24.348 7.995,39.974 23.985,46.879c-23.258,4.724 -34.887,21.441 -34.887,50.15l0,23.985c0,39.611 18.17,57.418 57.418,57.418l133.005,0c39.248,0 57.418,-17.807 57.418,-57.418l0,-49.059l36.34,0l0,-46.879l-181.701,0Zm72.681,82.492c0,11.992 -3.997,15.99 -15.99,15.99l-67.593,0c-11.992,0 -15.99,-3.997 -15.99,-15.99l0,-19.624c0,-11.992 3.997,-15.99 15.99,-15.99l83.583,0l0,35.613Z" fill="#f57e25"/>
+<path d="M4087.552,1847.203c49.786,0 73.407,-22.894 73.407,-73.407l0,-34.887l-75.588,0l0,19.624c0,17.443 -6.178,23.258 -23.258,23.258l-54.51,0c-17.443,0 -23.258,-5.814 -23.258,-23.258l0,-77.041c0,-17.443 5.814,-23.258 23.258,-23.258l54.51,0c17.08,0 23.258,5.814 23.258,23.258l0,17.08l75.588,0l0,-32.343c0,-50.513 -23.621,-73.407 -73.407,-73.407l-108.294,0c-49.786,0 -73.407,22.894 -73.407,73.407l0,107.567c0,50.513 23.621,73.407 73.407,73.407l108.294,0Z" fill="#f57e25"/>
+<rect x="4193.302" y="1592.821" width="79.949" height="254.382" fill="#f57e25"/>
+<path d="M4441.143,1756.352l-62.505,-163.531l-85.763,0l107.931,254.382l76.315,0l107.931,-254.382l-81.766,0l-62.142,163.531Z" fill="#f57e25"/>
+<rect x="4604.674" y="1592.821" width="79.949" height="254.382" fill="#f57e25"/>
 <path d="M4799.458,1592.821l-78.495,0l0,254.382l204.959,0l0,-69.41l-126.464,0l0,-184.972Z" fill="#f57e25"/>
-            </svg>
+</svg>
             <div style="font-size:15px;font-weight:800;color:#fff">${esc(settings.businessName)}</div>
             ${settings.abn?`<div style="font-size:11px;color:#ffffffcc">ABN: ${esc(settings.abn)}</div>`:""}
             ${settings.address?`<div style="font-size:11px;color:#ffffffcc">${esc(settings.address)}</div>`:""}
@@ -1475,6 +1489,94 @@ function openModal(type, data){
       </div>
       <div style="display:flex;gap:10px">
         <button class="btn btn-success" style="flex:1;padding:13px;font-size:14px" onclick="shareInvoice('${inv.id}')">📤 Send Invoice</button>
+      </div>`;
+  }
+  else if(type==="buildQuote"){
+    title.textContent="📋 New Quote";
+    var machOpts=MACHINES.map(function(m){return '<option>'+m+'</option>';}).join("");
+    var hireOpts=HIRE_TYPES.map(function(h){return '<option>'+h+'</option>';}).join("");
+    body.innerHTML=`
+      <div class="field"><label>Client / Company *</label>${smartInput("qf-client","clients","e.g. Wooding Earthworks")}</div>
+      <div class="field"><label>Site / Location</label>${smartInput("qf-site","sites","e.g. Oceane Stage 3")}</div>
+      <div class="field"><label>Quote Valid For (days)</label><input id="qf-valid" type="number" value="30" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit"/></div>
+
+      <div style="font-size:11px;color:#E8580A;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin:14px 0 8px">Line Items</div>
+      <div id="q-lines">
+        <div class="q-line-row" style="background:#0D0D0D;border-radius:10px;padding:12px;margin-bottom:8px">
+          <div class="field"><label>Description</label><input class="q-desc" placeholder="e.g. Hitachi ZX55U Wet Hire" style="background:#141414;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit"/></div>
+          <div style="display:flex;gap:8px">
+            <div class="field" style="flex:1"><label>Qty</label><input class="q-qty" type="number" value="1" min="0" step="0.5" style="background:#141414;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit"/></div>
+            <div class="field" style="flex:1"><label>Unit</label><select class="q-unit" style="background:#141414;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit"><option>hr</option><option>day</option><option>m3</option><option>t</option><option>load</option><option>item</option></select></div>
+            <div class="field" style="flex:1"><label>Rate ($)</label><input class="q-rate" type="number" min="0" step="0.01" placeholder="0.00" style="background:#141414;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit"/></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:14px" onclick="addQuoteLine()">+ Add Line Item</button>
+
+      <div class="field"><label>Notes</label><input id="qf-notes" placeholder="Any conditions, exclusions or special notes" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit"/></div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-primary" style="flex:1;padding:13px" onclick="buildNewQuote()">💾 Create Quote</button>
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      </div>`;
+  }
+  else if(type==="viewQuote"){
+    var q=quotes.find(function(x){return x.id===data;});
+    if(!q){closeModal();return;}
+    title.textContent=q.quoteNo;
+    var col=QUOTE_STATUS_COL[q.status]||"#6E6B64";
+    var subtotal=q.items?q.items.reduce(function(a,i){return a+(i.total||0);},0):0;
+    var gst=Math.round(subtotal*0.1*100)/100;
+    var total=Math.round((subtotal+gst)*100)/100;
+    var itemRows=q.items?q.items.map(function(item,i){
+      return '<div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #282828">'+
+        '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:#F0EDE8">'+esc(item.desc)+'</div>'+
+        '<div style="font-size:11px;color:#6E6B64">'+item.qty+' '+item.unit+' @ $'+item.rate.toFixed(2)+'/'+item.unit+'</div></div>'+
+        '<div style="font-size:14px;font-weight:700;color:#22A05A">'+fmtCur(item.total)+'</div></div>';
+    }).join(""):"";
+    body.innerHTML=`
+      <div style="background:linear-gradient(135deg,#1C3A5C,#0D2240);border-radius:12px;padding:14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:10px;color:#6E6B64cc;letter-spacing:1px;text-transform:uppercase">Quote</div>
+          <div style="font-size:20px;font-weight:900;color:#fff">${esc(q.quoteNo)}</div>
+          <div style="font-size:13px;font-weight:700;color:#fff;margin-top:4px">${esc(q.client)}</div>
+          ${q.site?`<div style="font-size:11px;color:#ffffffaa">${esc(q.site)}</div>`:""}
+        </div>
+        <div style="text-align:right">
+          <span style="font-size:11px;font-weight:700;color:${col};background:${col}22;padding:4px 12px;border-radius:10px">${esc(q.status)}</span>
+          <div style="font-size:11px;color:#6E6B64;margin-top:8px">Valid until</div>
+          <div style="font-size:12px;color:#F5C518;font-weight:700">${fmtDate(q.expiryDate)}</div>
+        </div>
+      </div>
+      <div style="background:#1C1C1C;border-radius:10px;overflow:hidden;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#282828">
+          <div style="font-size:10px;font-weight:800;color:#6E6B64;letter-spacing:1.2px;text-transform:uppercase">DESCRIPTION</div>
+          <div style="font-size:10px;font-weight:800;color:#6E6B64;letter-spacing:1.2px;text-transform:uppercase">AMOUNT</div>
+        </div>
+        ${itemRows}
+      </div>
+      <div style="background:#1C1C1C;border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #282828">
+          <span style="font-size:12px;color:#6E6B64">Subtotal (ex GST)</span>
+          <span style="font-size:12px;color:#F0EDE8;font-weight:600">${fmtCur(subtotal)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #282828">
+          <span style="font-size:12px;color:#6E6B64">GST (10%)</span>
+          <span style="font-size:12px;color:#F0EDE8;font-weight:600">${fmtCur(gst)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0 4px">
+          <span style="font-size:14px;font-weight:800;color:#F0EDE8">TOTAL</span>
+          <span style="font-size:18px;font-weight:900;color:#22A05A">${fmtCur(total)}</span>
+        </div>
+      </div>
+      ${q.notes?`<div style="font-size:12px;color:#6E6B64;font-style:italic;padding:10px 14px;background:#1C1C1C;border-radius:10px;margin-bottom:14px">${esc(q.notes)}</div>`:""}
+      <div style="font-size:10px;color:#6E6B64;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Update Status</div>
+      <div class="inv-status-row" style="margin-bottom:14px">
+        ${QUOTE_STATUS.map(function(s){return '<button class="btn btn-sm '+(q.status===s?'btn-primary':'btn-ghost')+'" onclick="setQuoteStatus(\''+q.id+'\',\''+s+'\');openModal(\'viewQuote\',\''+q.id+'\')">'+s+'</button>';}).join('')}
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-success" style="flex:2;padding:12px" onclick="shareQuote('${q.id}')">📤 Send Quote</button>
+        <button class="btn btn-primary" style="flex:2;padding:12px" onclick="convertQuoteToInvoice('${q.id}')">→ Invoice</button>
+        <button class="btn btn-ghost" style="flex:1;padding:12px;color:#D93B3B" onclick="deleteQuote('${q.id}')">🗑</button>
       </div>`;
   }
   else if(type==="settings"){
@@ -1649,6 +1751,7 @@ function render(){
     else if(currentTab==="crew") main.innerHTML=renderCrew();
     else if(currentTab==="invoices") main.innerHTML=renderInvoices();
     else if(currentTab==="rates") main.innerHTML=renderRates();
+    else if(currentTab==="quotes"){renderQuotes();return;}
   }catch(err){
     console.error("Render error:",err);
     main.innerHTML='<div class="card" style="margin-top:20px"><div style="text-align:center;padding:24px;color:#D93B3B"><div style="font-size:24px;margin-bottom:10px">⚠️</div><div style="font-weight:700;margin-bottom:8px">Screen load error</div><div style="font-size:12px;color:#6E6B64">Try switching to another tab and back.<br>Your data is safe.</div></div></div>';
@@ -3042,72 +3145,91 @@ function crewDeleteEntry(id){
 function shareInvoice(id){
   var inv=invoices.find(function(i){return i.id===id;});
   if(!inv) return;
-
+  var r=settings.rates||{};
   var biz=settings.businessName||"Angel Earthworks and Civil";
-  var abn=settings.abn?"ABN: "+settings.abn:"";
-  var phone=settings.phone||"";
-  var email=settings.email||"";
-  var bank=settings.bank?"Bank: "+settings.bank:"";
-  var bsb=settings.bsb?"BSB: "+settings.bsb:"";
-  var acct=settings.accountNo?"Account: "+settings.accountNo:"";
+  var abn=settings.abn||"12 173 760 280";
+  var addr=settings.address||"Goolwa, SA";
+  var phone=settings.phone||"0447099712";
+  var email=settings.email||"Jagga-321@hotmail.com";
+  var bank=settings.bank||"";
+  var bsb=settings.bsb||"";
+  var accountNo=settings.accountNo||"";
+  var accountName=settings.accountName||biz;
+
+  var issued=new Date(inv.date).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"});
+  var due=new Date(inv.dueDate).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"});
 
   var lines=[
-    "━━━━━━━━━━━━━━━━━━━━━━━",
-    "TAX INVOICE",
+    "════════════════════════════════",
+    "           TAX INVOICE",
+    "════════════════════════════════",
+    "Invoice No:   "+inv.invoiceNo,
+    "Date Issued:  "+issued,
+    "Payment Due:  "+due,
+    "",
+    "BILL TO:",
+    inv.client,
+    inv.clientAddress||"",
+    "",
+    "FROM:",
     biz,
-    abn,
-    phone,email,
-    "━━━━━━━━━━━━━━━━━━━━━━━",
-    "",
-    "Invoice No: "+inv.invoiceNo,
-    "Date: "+new Date(inv.date).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"}),
-    "Due: "+new Date(inv.dueDate).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"}),
-    "",
-    "Bill To: "+inv.client,
-    inv.clientAddress?"Address: "+inv.clientAddress:"",
-    "",
-    "━━━━━━━━━━━━━━━━━━━━━━━",
-    "SERVICES:",
+    "ABN: "+abn,
+    addr,
+    phone+"  |  "+email,
+    "────────────────────────────────",
     ""
   ];
 
   inv.items.forEach(function(item,i){
-    lines.push((i+1)+". "+item.machine+(item.attachment&&item.attachment!=="General Bucket"?" ("+item.attachment+")":"")+" — "+item.hireType);
-    lines.push("   Date: "+new Date(item.startTime).toLocaleDateString("en-AU",{day:"2-digit",month:"short"}));
-    lines.push("   "+( item.hireType&&item.hireType.startsWith("Day Rate")?"Day Rate: $"+item.total.toFixed(2)+" (Machine $"+(settings.rates.excavatorDayRate||250)+"/day + Operator "+fmtHrs(item.duration)+" @ $"+(settings.rates.operatorRate||60)+"/hr)":"Hours: "+fmtHrs(item.duration)+" @ $"+item.rate+"/hr"));
+    var d=new Date(item.startTime).toLocaleDateString("en-AU",{weekday:"short",day:"2-digit",month:"short",year:"numeric"});
+    var desc=item.machine+(item.attachment&&item.attachment!=="None"&&item.attachment!=="General Bucket"?" — "+item.attachment:"");
+    lines.push((i+1)+". "+d);
+    lines.push("   "+desc);
+    lines.push("   "+item.hireType);
+    if(item.operator) lines.push("   Operator: "+item.operator);
+    if(item.hireType==="Day Rate (Dry + Operator)"){
+      lines.push("   Machine: $"+(r.excavatorDayRate||250)+"/day flat rate");
+      lines.push("   Operator: "+fmtHrs(item.duration)+" @ $"+(r.operatorRate||60)+"/hr");
+    } else if(item.hireType==="Day Rate (Machine Only)"){
+      lines.push("   Machine only: $"+(r.excavatorDayRate||250)+"/day");
+    } else {
+      lines.push("   "+fmtHrs(item.duration)+" @ $"+item.rate+"/hr");
+    }
     lines.push("   Amount: $"+item.total.toFixed(2));
     lines.push("");
   });
 
-  lines.push("━━━━━━━━━━━━━━━━━━━━━━━");
-  lines.push("Subtotal:   $"+inv.subtotal.toFixed(2));
-  lines.push("GST (10%):  $"+inv.gst.toFixed(2));
-  lines.push("TOTAL DUE:  $"+inv.totalGST.toFixed(2));
-  lines.push("━━━━━━━━━━━━━━━━━━━━━━━");
+  lines.push("────────────────────────────────");
+  lines.push("Subtotal (ex GST):    $"+inv.subtotal.toFixed(2));
+  lines.push("GST (10%):            $"+inv.gst.toFixed(2));
+  lines.push("════════════════════════════════");
+  lines.push("TOTAL DUE:            $"+inv.totalGST.toFixed(2));
+  lines.push("════════════════════════════════");
   lines.push("");
 
-  if(bank||bsb||acct){
+  if(bank||bsb||accountNo){
     lines.push("PAYMENT DETAILS:");
-    if(bank) lines.push(bank);
-    if(bsb) lines.push(bsb);
-    if(acct) lines.push(acct);
+    lines.push("────────────────────────────────");
+    if(bank)        lines.push("Bank:          "+bank);
+    if(accountName) lines.push("Account Name:  "+accountName);
+    if(bsb)         lines.push("BSB:           "+bsb);
+    if(accountNo)   lines.push("Account No:    "+accountNo);
+    lines.push("Reference:     "+inv.invoiceNo);
     lines.push("");
   }
 
-  if(inv.notes) lines.push("Notes: "+inv.notes);
-  lines.push("Thank you for your business.");
+  if(inv.notes) lines.push("Note: "+inv.notes);
+  lines.push("Site: "+(inv.items[0]&&inv.items[0].site?inv.items[0].site:""));
+  lines.push("Thank you for your business and the opportunity to work with you.");
+  lines.push("");
+  lines.push(biz+"  |  ABN: "+abn+"  |  "+phone+"  |  "+email+"  |  "+addr);
 
-  var text=lines.filter(function(l){return l!==undefined&&l!=="";}).join("\n");
+  var text=lines.filter(function(l){return l!==undefined;}).join("\n");
 
   if(navigator.share){
-    navigator.share({
-      title:"Invoice "+inv.invoiceNo+" — "+biz,
-      text:text
-    }).catch(function(){});
+    navigator.share({title:"Invoice "+inv.invoiceNo+" — "+biz,text:text}).catch(function(){});
   } else if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(function(){
-      toast("Invoice copied to clipboard 📋");
-    });
+    navigator.clipboard.writeText(text).then(function(){toast("Invoice copied to clipboard 📋");});
   } else {
     openModal("📤 Send Invoice — "+inv.invoiceNo);
     document.getElementById("modal-body").innerHTML=
@@ -3145,6 +3267,245 @@ function edHireChange(hireType){
     var note3=document.getElementById("ed-rate-note");
     if(note3) note3.textContent="";
   }
+}
+
+
+// ── QUOTES ────────────────────────────────────────────────────
+
+var QUOTE_STATUS=["Draft","Sent","Accepted","Declined","Expired"];
+var QUOTE_STATUS_COL={Draft:"#6E6B64",Sent:"#2878CC",Accepted:"#22A05A",Declined:"#D93B3B",Expired:"#F5C518"};
+
+function fmtQuoteNo(n){return "QTE-"+String(n).padStart(4,"0");}
+
+function renderQuotes(){
+  var main=document.getElementById("main");
+  if(!main) return;
+  var rows=quotes.map(function(q,qi){
+    var col=QUOTE_STATUS_COL[q.status]||"#6E6B64";
+    var subtotal=q.subtotal||0;
+    var total=q.total||(Math.round(subtotal*1.1*100)/100);
+    var card=document.createElement("div");
+    card.className="card card-click";
+    card.style.marginBottom="8px";
+    card.dataset.qid=q.id;
+    card.innerHTML=
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
+      '<div style="flex:1">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
+      '<div style="font-size:14px;font-weight:800;color:#F0EDE8">'+esc(q.quoteNo)+'</div>'+
+      '<span style="font-size:10px;font-weight:700;color:'+col+';background:'+col+'22;padding:2px 8px;border-radius:10px">'+esc(q.status)+'</span>'+
+      '</div>'+
+      '<div style="font-size:13px;color:#F0EDE8;font-weight:600">'+esc(q.client)+'</div>'+
+      (q.site?'<div style="font-size:11px;color:#6E6B64">'+esc(q.site)+'</div>':'')+
+      '<div style="font-size:11px;color:#6E6B64;margin-top:3px">Issued: '+fmtDate(q.date)+' · Valid until: <span style="color:#F5C518">'+fmtDate(q.expiryDate)+'</span></div>'+
+      '</div>'+
+      '<div style="text-align:right">'+
+      '<div style="font-size:16px;font-weight:800;color:#22A05A">'+fmtCur(total)+'</div>'+
+      '<div style="font-size:10px;color:#6E6B64">inc GST</div>'+
+      '</div></div>';
+    card.addEventListener("click",function(){openModal("viewQuote",this.dataset.qid);});
+    return card;
+  });
+
+  main.innerHTML="";
+  var wrap=document.createElement("div");
+  wrap.style.padding="14px";
+
+  var hdr=document.createElement("div");
+  hdr.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px";
+  hdr.innerHTML='<div style="font-size:16px;font-weight:800;color:#F0EDE8">📋 Quotes</div>'+
+    '<button class="btn btn-primary" onclick="openModal(&quot;buildQuote&quot;)">+ New Quote</button>';
+  wrap.appendChild(hdr);
+
+  if(rows.length){
+    rows.forEach(function(r){wrap.appendChild(r);});
+  } else {
+    var empty=document.createElement("div");
+    empty.className="card";
+    empty.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div>No quotes yet.<br/>Tap + New Quote to create one.</div></div>';
+    wrap.appendChild(empty);
+  }
+  main.appendChild(wrap);
+}
+
+function buildNewQuote(){
+  var client=gvt("qf-client");
+  var site=gvt("qf-site");
+  var notes=gvt("qf-notes");
+  var validDays=parseInt(gv("qf-valid"))||30;
+  if(!client){toast("Please enter a client name","error");return;}
+
+  // Collect line items
+  var items=[];
+  var rows=document.querySelectorAll(".q-line-row");
+  rows.forEach(function(row){
+    var desc=row.querySelector(".q-desc").value.trim();
+    var qty=parseFloat(row.querySelector(".q-qty").value)||1;
+    var rate=parseFloat(row.querySelector(".q-rate").value)||0;
+    var unit=row.querySelector(".q-unit").value||"hr";
+    if(desc&&rate>0){
+      items.push({desc:desc,qty:qty,rate:rate,unit:unit,total:Math.round(qty*rate*100)/100});
+    }
+  });
+  if(!items.length){toast("Please add at least one line item","error");return;}
+
+  var subtotal=items.reduce(function(a,i){return a+i.total;},0);
+  var gst=Math.round(subtotal*0.1*100)/100;
+  var total=Math.round((subtotal+gst)*100)/100;
+  var qNo=fmtQuoteNo(settings.nextQuote||1);
+  var today=new Date();
+  var expiry=new Date(today.getTime()+validDays*86400000);
+
+  var q={
+    id:uid(), quoteNo:qNo,
+    date:today.toISOString(),
+    expiryDate:expiry.toISOString(),
+    client:client, site:site, notes:notes,
+    items:items, subtotal:subtotal, gst:gst, total:total,
+    status:"Draft"
+  };
+  quotes.unshift(q);
+  settings.nextQuote=(settings.nextQuote||1)+1;
+  saveAll();
+  closeModal();
+  switchTab("quotes");
+  toast("Quote "+qNo+" created ✅");
+}
+
+function shareQuote(id){
+  var q=quotes.find(function(x){return x.id===id;});
+  if(!q) return;
+  var r=settings.rates||{};
+  var biz=settings.businessName||"Angel Earthworks and Civil";
+  var abn=settings.abn||"12 173 760 280";
+  var addr=settings.address||"Goolwa, SA";
+  var phone=settings.phone||"0447099712";
+  var email=settings.email||"Jagga-321@hotmail.com";
+  var issued=new Date(q.date).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"});
+  var expiry=new Date(q.expiryDate).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"});
+
+  var lines=[
+    "════════════════════════════════",
+    "              QUOTE",
+    "════════════════════════════════",
+    "Quote No:     "+q.quoteNo,
+    "Date Issued:  "+issued,
+    "Valid Until:  "+expiry,
+    "",
+    "PREPARED FOR:",
+    q.client,
+    q.site||"",
+    "",
+    "FROM:",
+    biz,
+    "ABN: "+abn,
+    addr,
+    phone+"  |  "+email,
+    "────────────────────────────────",
+    ""
+  ];
+
+  q.items.forEach(function(item,i){
+    lines.push((i+1)+". "+item.desc);
+    lines.push("   "+item.qty+" "+item.unit+" @ $"+item.rate.toFixed(2)+"/"+item.unit+" = $"+item.total.toFixed(2));
+    lines.push("");
+  });
+
+  lines.push("────────────────────────────────");
+  lines.push("Subtotal (ex GST):    $"+q.subtotal.toFixed(2));
+  lines.push("GST (10%):            $"+q.gst.toFixed(2));
+  lines.push("════════════════════════════════");
+  lines.push("TOTAL:                $"+q.total.toFixed(2)+" (inc GST)");
+  lines.push("════════════════════════════════");
+  lines.push("");
+  lines.push("This quote is valid until "+expiry+".");
+  lines.push("To accept, please reply to this message or contact us.");
+  if(q.notes) lines.push("\nNotes: "+q.notes);
+  lines.push("");
+  lines.push(biz+"  |  ABN: "+abn+"  |  "+phone+"  |  "+email);
+
+  var text=lines.filter(function(l){return l!==undefined;}).join("\n");
+
+  if(navigator.share){
+    navigator.share({title:"Quote "+q.quoteNo+" — "+biz,text:text}).catch(function(){});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){toast("Quote copied to clipboard 📋");});
+  } else {
+    openModal("📋 Send Quote — "+q.quoteNo);
+    document.getElementById("modal-body").innerHTML=
+      '<textarea readonly onclick="this.select()" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:12px;width:100%;height:320px;font-size:11px;line-height:1.7;font-family:monospace;resize:none">'+
+      text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</textarea>'+
+      '<button class="btn btn-success" style="width:100%;margin-top:12px" onclick="closeModal()">Done</button>';
+  }
+}
+
+function convertQuoteToInvoice(id){
+  var q=quotes.find(function(x){return x.id===id;});
+  if(!q){return;}
+  if(!confirm("Convert "+q.quoteNo+" to an invoice?\nThis will create a new draft invoice.")){return;}
+  var invNo=fmtInvNo(settings.nextInvoice||1);
+  var due=new Date(Date.now()+30*86400000).toISOString();
+  var invItems=q.items.map(function(item){
+    return {
+      id:uid(), machine:item.desc, hireType:"Quoted",
+      attachment:"", operator:"",
+      startTime:new Date().toISOString(),
+      endTime:new Date().toISOString(),
+      duration:item.qty, rate:item.rate,
+      total:item.total, site:q.site||""
+    };
+  });
+  var inv={
+    id:uid(), invoiceNo:invNo,
+    date:new Date().toISOString(), dueDate:due,
+    client:q.client, clientAddress:"",
+    notes:q.notes||"Converted from "+q.quoteNo,
+    items:invItems,
+    subtotal:q.subtotal, gst:q.gst, totalGST:q.total,
+    status:"Draft"
+  };
+  invoices.unshift(inv);
+  settings.nextInvoice=(settings.nextInvoice||1)+1;
+  // Mark quote as accepted
+  quotes=quotes.map(function(x){return x.id===id?Object.assign({},x,{status:"Accepted"}):x;});
+  saveAll();
+  closeModal();
+  switchTab("invoices");
+  toast("Invoice "+invNo+" created from "+q.quoteNo+" ✅");
+}
+
+function deleteQuote(id){
+  var q=quotes.find(function(x){return x.id===id;});
+  if(!q){return;}
+  if(!confirm("Delete "+q.quoteNo+"? This cannot be undone.")){return;}
+  quotes=quotes.filter(function(x){return x.id!==id;});
+  saveAll();
+  closeModal();
+  switchTab("quotes");
+  toast("Quote deleted");
+}
+
+
+function addQuoteLine(){
+  var container=document.getElementById("q-lines");
+  if(!container) return;
+  var row=document.createElement("div");
+  row.className="q-line-row";
+  row.style.cssText="background:#0D0D0D;border-radius:10px;padding:12px;margin-bottom:8px;position:relative";
+  row.innerHTML='<button onclick="this.parentNode.remove()" style="position:absolute;top:8px;right:8px;background:none;border:none;color:#D93B3B;cursor:pointer;font-size:14px">✕</button>'+
+    '<div class="field"><label>Description</label><input class="q-desc" placeholder="e.g. Hitachi ZX55U Wet Hire" style="background:#141414;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit"/></div>'+
+    '<div style="display:flex;gap:8px">'+
+    '<div class="field" style="flex:1"><label>Qty</label><input class="q-qty" type="number" value="1" min="0" step="0.5" style="background:#141414;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit"/></div>'+
+    '<div class="field" style="flex:1"><label>Unit</label><select class="q-unit" style="background:#141414;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit"><option>hr</option><option>day</option><option>m3</option><option>t</option><option>load</option><option>item</option></select></div>'+
+    '<div class="field" style="flex:1"><label>Rate ($)</label><input class="q-rate" type="number" min="0" step="0.01" placeholder="0.00" style="background:#141414;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit"/></div>'+
+    '</div>';
+  container.appendChild(row);
+}
+
+function setQuoteStatus(id,status){
+  quotes=quotes.map(function(q){return q.id===id?Object.assign({},q,{status:status}):q;});
+  saveAll();
+  toast("Quote updated to "+status);
 }
 
 </script>
