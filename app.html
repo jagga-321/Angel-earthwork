@@ -2468,6 +2468,7 @@ try{
     sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});
     crew=load("ae_crew",[]);
     invoices=load("ae_invoices",[]);
+    quotes=load("ae_quotes",[];
     crewMembers=load("ae_pins",[{id:"w1",name:"Crew Member",pin:"1234",role:"Operator"}]);
     var savedSettings=load("ae_settings",{});
     settings=Object.assign({},DS,savedSettings);
