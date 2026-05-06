@@ -473,6 +473,7 @@ sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);}
 var crew         = load("ae_crew",[]);
 var invoices     = load("ae_invoices",[]);
 var settings     = load("ae_settings",{...DS, rates:{...DR}});
+var quotes       =load("ae_quotes",[]);  
 var activeSession= load("ae_active",null);
 var selectedSess = [];
 var currentTab   = "dashboard";
