@@ -473,7 +473,7 @@ sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);}
 var crew         = load("ae_crew",[]);
 var invoices     = load("ae_invoices",[]);
 var settings     = load("ae_settings",{...DS, rates:{...DR}});
-var quotes       =load("ae_quotes",[]);  
+var quotes       =load("ae_quotes",[]);
 var activeSession= load("ae_active",null);
 var selectedSess = [];
 var currentTab   = "dashboard";
@@ -1632,7 +1632,7 @@ function openModal(type, data){
         ${rateField("After-hours Surcharge","afterHoursSurcharge","$/hr")}
         ${rateField("Mobilisation — Local","mobilisationLocal","$")}
         ${rateField("Mobilisation — Regional","mobilisationRegional","$")}
-
+</div>
       ${divider("Labour & Day Rates")}
       <div class="rate-grid">
         ${rateField("Operator Rate","operatorRate")}
