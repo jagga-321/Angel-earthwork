@@ -3284,39 +3284,39 @@ var QUOTE_STATUS_COL={Draft:"#6E6B64",Sent:"#2878CC",Accepted:"#22A05A",Declined
 function fmtQuoteNo(n){return "QTE-"+String(n).padStart(4,"0");}
 
 function renderQuotes(){
-  try{
-    var main=document.getElementById("main");
-    if(!main) return;
-    if(!quotes) quotes=[];
-    main.innerHTML="";
-    var wrap=document.createElement("div");
-    wrap.style.padding="14px";
-    var hdr=document.createElement("div");
-    hdr.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px";
-    hdr.innerHTML='<div style="font-size:16px;font-weight:800;color:#F0EDE8">Quotes</div>'+
-      '<button class="btn btn-primary" onclick="openModal(\'buildQuote\')">+ New Quote</button>';
-    wrap.appendChild(hdr);
-    if(!quotes.length){
-      var empty=document.createElement("div");
-      empty.className="card";
-      empty.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div>No quotes yet. Tap + New Quote to create one.</div></div>';
-      wrap.appendChild(empty);
-    } else {
-      quotes.forEach(function(q){
-        var col=QUOTE_STATUS_COL[q.status]||"#6E6B64";
-        var total=q.total||0;
-        var card=document.createElement("div");
-        card.className="card card-click";
-        card.style.marginBottom="8px";
-        card.dataset.qid=q.id;
-        card.innerHTML='<div style="font-size:14px;font-weight:800;color:#F0EDE8">'+esc(q.quoteNo)+'</div>'+
-          '<div style="font-size:13px;color:#F0EDE8">'+esc(q.client)+'</div>'+
-          '<div style="font-size:11px;color:#6E6B64">'+fmtDate(q.date)+'</div>'+
-          '<div style="font-size:16px;font-weight:800;color:#22A05A">'+fmtCur(total)+'</div>';
-        card.addEventListener("click",function(){openModal("viewQuote",this.dataset.qid);});
-        wrap.appendChild(card);
-      });
-    }
+  var main=document.getElementById("main");
+  if(!main) return;
+  if(typeof quotes==="undefined") quotes=[];
+  main.innerHTML="";
+  var wrap=document.createElement("div");
+  wrap.style.padding="14px";
+  var hdr=document.createElement("div");
+  hdr.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px";
+  hdr.innerHTML='<div style="font-size:16px;font-weight:800;color:#F0EDE8">Quotes</div><button class="btn btn-primary" onclick="openModal(\'buildQuote\')">+ New Quote</button>';
+  wrap.appendChild(hdr);
+  if(!quotes||!quotes.length){
+    var empty=document.createElement("div");
+    empty.className="card";
+    empty.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div>No quotes yet.<br/>Tap + New Quote to create one.</div></div>';
+    wrap.appendChild(empty);
+  } else {
+    quotes.forEach(function(q){
+      var col=(QUOTE_STATUS_COL&&QUOTE_STATUS_COL[q.status])||"#6E6B64";
+      var total=q.total||0;
+      var card=document.createElement("div");
+      card.className="card card-click";
+      card.style.marginBottom="8px";
+      card.dataset.qid=q.id;
+      card.innerHTML='<div style="font-size:14px;font-weight:800;color:#F0EDE8">'+esc(q.quoteNo)+'</div>'+
+        '<div style="font-size:13px;color:#C8C4BE">'+esc(q.client)+(q.site?' · '+esc(q.site):'')+'</div>'+
+        '<div style="font-size:11px;color:#6E6B64">'+fmtDate(q.date)+' · Valid until '+fmtDate(q.expiryDate)+'</div>'+
+        '<div style="font-size:16px;font-weight:800;color:#22A05A;margin-top:6px">'+fmtCur(total)+' <span style="font-size:10px;color:#6E6B64">inc GST</span></div>';
+      card.addEventListener("click",function(){openModal("viewQuote",this.dataset.qid);});
+      wrap.appendChild(card);
+    });
+  }
+  main.appendChild(wrap);
+}
     main.appendChild(wrap);
   }catch(err){
     console.error("Quotes error:",err);
