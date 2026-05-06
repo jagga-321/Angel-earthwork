@@ -41,7 +41,7 @@ window.onerror=function(msg,src,line,col,err){
   var ps=document.getElementById("pin-screen");
   var pm=document.getElementById("pin-msg");
   if(ps) ps.style.display="flex";
-  if(pm) pm.innerHTML='<span style="color:#D93B3B;font-size:11px">Error: '+String(msg).slice(0,80)+' (L'+line+')</span>';
+  if(pm) pm.innerHTML='<span style="color:#D93B3B;font-size:11px">Error: '+String(msg).slice(0,120)+' (L'+line+')</span>';
   return true;
 };
 window.onunhandledrejection=function(e){
@@ -1751,7 +1751,7 @@ function render(){
     else if(currentTab==="crew") main.innerHTML=renderCrew();
     else if(currentTab==="invoices") main.innerHTML=renderInvoices();
     else if(currentTab==="rates") main.innerHTML=renderRates();
-    else if(currentTab==="quotes"){
+    else if(currentTab==="quotes"){try{if(!quotes)quotes=[];renderQuotes();}catch(e){document.getElementById("main").innerHTML='<div class="card"><div style="padding:20px;color:#D93B3B;font-size:13px">Quote error: '+e.message+'<br/>Line: '+e.lineNumber+'</div></div>';}return;}
   try{renderQuotes();}catch(err){
     document.getElementById("main").innerHTML='<div class="card"><div style="padding:20px;color:#D93B3B">Quotes error: '+err.message+'</div></div>';
   }
