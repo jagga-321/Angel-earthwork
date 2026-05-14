@@ -548,6 +548,7 @@ document.getElementById("pin-screen").style.display="flex";
 document.getElementById("boss-view").style.display="none";
 document.getElementById("crew-view").style.display="none";
 drawDots();
+if(forceInitialPinSetup()){document.getElementById("pin-msg").textContent="Reload the app and set a manager PIN to continue";}
 try{
 ensureFirebaseAuth(function(){
 syncFromFirebase(function(){
