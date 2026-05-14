@@ -19,28 +19,39 @@ function ensureFirebaseAuth(cb){
 if(firebaseAuthReady){if(cb)cb();return;}
 if(firebaseAuthFailed){if(cb)cb();return;}
 if(typeof firebase==="undefined"||!firebase.auth){firebaseAuthFailed=true;if(cb)cb();return;}
+try{firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});}catch(e){}
+try{localStorage.removeItem("ae_fb_creds");}catch(e){}
 if(firebase.auth().currentUser){firebaseAuthReady=true;if(cb)cb();return;}
-var creds=null;
-try{var saved=localStorage.getItem("ae_fb_creds");if(saved)creds=JSON.parse(saved);}catch(e){}
-function doSignIn(email,pw,remember){
+firebase.auth().onAuthStateChanged(function(user){if(user&&!firebaseAuthReady){firebaseAuthReady=true;if(cb)cb();}});
+function doSignIn(email,pw){
 firebase.auth().signInWithEmailAndPassword(email,pw).then(function(){
 firebaseAuthReady=true;
-if(remember){try{localStorage.setItem("ae_fb_creds",JSON.stringify({e:email,p:pw}));}catch(e){}}
 if(cb)cb();
 }).catch(function(err){
 console.log("Firebase auth error:",err.message);
-try{localStorage.removeItem("ae_fb_creds");}catch(e){}
+alert("Sign-in failed: "+err.message);
 promptForCreds();
 });
 }
 function promptForCreds(){
-var email=prompt("Sign in to Angel Earthworks cloud sync\n\nEmail:","app@angelearthworksandcivil.com.au");
-if(!email){firebaseAuthFailed=true;if(cb)cb();return;}
-var pw=prompt("Password for "+email+":");
-if(!pw){firebaseAuthFailed=true;if(cb)cb();return;}
-doSignIn(email,pw,true);
+showFirebaseLoginModal(function(email,pw){
+if(!email||!pw){firebaseAuthFailed=true;if(cb)cb();return;}
+doSignIn(email,pw);
+});
 }
-if(creds&&creds.e&&creds.p){doSignIn(creds.e,creds.p,false);}else{promptForCreds();}
+setTimeout(function(){if(!firebaseAuthReady&&!firebase.auth().currentUser)promptForCreds();},800);
+}
+function showFirebaseLoginModal(onSubmit){
+var existing=document.getElementById("fb-login-overlay");if(existing)existing.remove();
+var ov=document.createElement("div");ov.id="fb-login-overlay";ov.style.cssText="position:fixed;inset:0;background:#000000ee;z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;font-family:'Courier New',monospace";
+ov.innerHTML='<div style="background:#141414;border:1px solid #333;border-radius:16px;padding:24px;width:100%;max-width:400px;color:#F0EDE8"><div style="font-size:11px;color:#E8580A;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Angel Earthworks</div><div style="font-size:18px;font-weight:800;margin-bottom:18px">Cloud Sync Sign-in</div><div style="font-size:11px;color:#6E6B64;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:5px">Email</div><input id="fb-email" type="email" autocomplete="username" value="app@angelearthworksandcivil.com.au" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;margin-bottom:14px;font-family:inherit;font-size:14px"/><div style="font-size:11px;color:#6E6B64;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:5px">Password</div><input id="fb-pw" type="password" autocomplete="current-password" placeholder="Enter password" style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;margin-bottom:18px;font-family:inherit;font-size:14px"/><div style="display:flex;gap:10px"><button id="fb-cancel" style="background:transparent;color:#6E6B64;border:1px solid #282828;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:inherit">Skip</button><button id="fb-submit" style="flex:1;background:#E8580A;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:inherit">Sign In</button></div><div style="font-size:10px;color:#3A3A3A;margin-top:14px;text-align:center">Your sign-in is handled by Firebase and stays on this device.</div></div>';
+document.body.appendChild(ov);
+setTimeout(function(){var pw=document.getElementById("fb-pw");if(pw)pw.focus();},50);
+function submit(){var em=(document.getElementById("fb-email")||{}).value;var pw=(document.getElementById("fb-pw")||{}).value;ov.remove();onSubmit(em,pw);}
+function cancel(){ov.remove();onSubmit(null,null);}
+document.getElementById("fb-submit").onclick=submit;
+document.getElementById("fb-cancel").onclick=cancel;
+document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key==="Enter")submit();});
 }
 </script>
 <title>Angel Earthworks and Civil</title>
