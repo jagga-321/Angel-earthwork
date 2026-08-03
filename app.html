@@ -59,7 +59,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v24"/>
+<meta name="version" content="v25"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -329,14 +329,14 @@ function openPhotoLibModal(editId){
   var p=editId?photoLib.find(function(x){return x.id===editId;}):null;
   if(editId&&!p)return;
   if(p&&p.kind==="exp"){openExpenseModal(p.expId);return;}
-  window._plEditId=p?p.id:null;window._plPending=null;
+  window._plEditId=p?p.id:null;window._plPendingList=null;
   var overlay=document.getElementById("overlay");overlay.classList.add("open");
   document.getElementById("modal-title").textContent=p?"Edit Photo":"Add Photo";
   var iS=' style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit;font-size:14px"';
   var catOpts=Object.keys(PL_CATS).map(function(c){return'<option'+((p?p.cat:"Receipt")===c?" selected":"")+'>'+c+'</option>';}).join("");
   var expCatOpts=Object.keys(EXP_CATEGORIES).map(function(c){return'<option'+(c==="Other"?" selected":"")+'>'+c+'</option>';}).join("");
   document.getElementById("modal-body").innerHTML=
-  (p?'':'<div class="field"><label>Photo *</label><label for="pl-file" class="photo-add-btn" id="pl-file-btn" style="display:inline-block">\uD83D\uDCF7 Take / choose photo</label><input type="file" id="pl-file" accept="image/*" style="display:none" onchange="plHandleFile(event)"/><div id="pl-file-hint" style="font-size:11px;color:#6E6B64;margin-top:6px">No photo selected yet</div><img id="pl-preview" style="display:none;max-width:120px;border-radius:8px;margin-top:8px"/></div>')+
+  (p?'':'<div class="field"><label>Photo *</label><label for="pl-file" class="photo-add-btn" id="pl-file-btn" style="display:inline-block">\uD83D\uDCF7 Take / choose photo</label><input type="file" id="pl-file" accept="image/*" multiple style="display:none" onchange="plHandleFile(event)"/><div id="pl-file-hint" style="font-size:11px;color:#6E6B64;margin-top:6px">No photo selected yet</div><img id="pl-preview" style="display:none;max-width:120px;border-radius:8px;margin-top:8px"/></div>')+
   '<div class="field-row"><div class="field"><label>Date *</label><input id="pl-date" type="date" value="'+(p?p.date:fmtIsoDate(new Date()))+'"'+iS+'/></div>'+
   '<div class="field"><label>Type</label><select id="pl-cat" onchange="plCatChange()"'+iS+'>'+catOpts+'</select></div></div>'+
   '<div id="pl-exp-wrap" style="display:'+((p?p.cat:"Receipt")==="Receipt"?"block":"none")+'">'+
@@ -350,42 +350,45 @@ function openPhotoLibModal(editId){
   '<div style="display:flex;gap:10px;margin-top:12px"><button class="btn-primary" style="flex:1" onclick="savePhotoLibEntry()">'+(p?"Save Changes":"Save Photo")+'</button><button class="btn-ghost" onclick="closeModal()">Cancel</button></div>';
 }
 function plCatChange(){var c=gv("pl-cat");var w=document.getElementById("pl-exp-wrap");if(w)w.style.display=(c==="Receipt"&&!window._plEditId)?"block":"none";}
-function plHandleFile(event){var file=event.target.files&&event.target.files[0];event.target.value="";if(!file)return;
-  if(!file.type.match(/^image\//)){toast("Please pick an image file","error");return;}
-  toast("Processing photo...");
-  Promise.all([compressImage(file,1200,0.8),compressImage(file,150,0.55)]).then(function(r){
-    var sizeKb=Math.round(r[0].length/1024);
-    if(sizeKb>900){toast("Photo too large after compression ("+sizeKb+"KB)","error");return;}
-    window._plPending={full:r[0],thumb:r[1],sizeKb:sizeKb};
-    var pv=document.getElementById("pl-preview");if(pv){pv.src=r[1];pv.style.display="block";}
-    var h=document.getElementById("pl-file-hint");if(h)h.textContent="Photo ready ("+sizeKb+"KB)";
-  }).catch(function(err){toast("Could not process photo: "+(err.message||"error"),"error");});}
+function plExifDate(file){return new Promise(function(resolve){var r=new FileReader();r.onload=function(ev){try{var v=new DataView(ev.target.result);if(v.getUint16(0)!==0xFFD8){resolve(null);return;}var off=2,len=v.byteLength;while(off<len-4){if(v.getUint8(off)!==0xFF)break;var marker=v.getUint8(off+1);var size=v.getUint16(off+2);if(marker===0xE1&&v.byteLength>off+10&&v.getUint32(off+4)===0x45786966){var t=off+10;var little=v.getUint16(t)===0x4949;var ifd=t+v.getUint32(t+4,little);var n=v.getUint16(ifd,little);var exifOff=null;for(var i=0;i<n;i++){var en=ifd+2+i*12;if(v.getUint16(en,little)===0x8769)exifOff=t+v.getUint32(en+8,little);}var fallback=null;var scan=function(base){try{var c=v.getUint16(base,little);for(var j=0;j<c;j++){var e2=base+2+j*12;var tag=v.getUint16(e2,little);if(tag===0x9003||tag===0x0132){var p=t+v.getUint32(e2+8,little);var str="";for(var k=0;k<19;k++)str+=String.fromCharCode(v.getUint8(p+k));if(tag===0x9003)return str;if(!fallback)fallback=str;}}}catch(e){}return null;};var d1=exifOff?scan(exifOff):null;if(!d1)d1=scan(ifd)||fallback;if(d1&&/^\d{4}:\d{2}:\d{2}/.test(d1)){resolve(d1.slice(0,10).replace(/:/g,"-"));return;}resolve(null);return;}off+=2+size;}resolve(null);}catch(err){resolve(null);}};r.onerror=function(){resolve(null);};r.readAsArrayBuffer(file.slice(0,131072));});}
+function plHandleFile(event){var files=Array.prototype.slice.call(event.target.files||[]);event.target.value="";if(!files.length)return;
+files=files.filter(function(f){return f.type.match(/^image\//);});
+if(!files.length){toast("Please pick image files","error");return;}
+if(files.length>15){files=files.slice(0,15);toast("Max 15 photos at a time — taking the first 15");}
+toast("Processing "+files.length+" photo"+(files.length>1?"s":"")+"...");
+Promise.all(files.map(function(f){return Promise.all([compressImage(f,1200,0.8),compressImage(f,150,0.55),plExifDate(f)]).then(function(r){var kb=Math.round(r[0].length/1024);if(kb>900)return null;return{full:r[0],thumb:r[1],sizeKb:kb,date:r[2]||(f.lastModified?fmtIsoDate(new Date(f.lastModified)):null)};});})).then(function(list){
+list=list.filter(function(x){return x;});
+if(!list.length){toast("Photos too large after compression","error");return;}
+window._plPendingList=list;
+var pv=document.getElementById("pl-preview");if(pv){pv.src=list[0].thumb;pv.style.display="block";}
+if(list.length===1&&list[0].date){var di=document.getElementById("pl-date");if(di)di.value=list[0].date;}
+var withDates=list.filter(function(x){return x.date;}).length;
+var h=document.getElementById("pl-file-hint");if(h)h.textContent=list.length+" photo"+(list.length>1?"s":"")+" ready"+(withDates?" — date"+(withDates>1?"s":"")+" read from the photo"+(withDates>1?"s":""):"")+(list.length>1?" · each saves with its own date":"");
+}).catch(function(err){toast("Could not process photos: "+(err.message||"error"),"error");});}
 function savePhotoLibEntry(){
-  var date=gv("pl-date");var cat=gv("pl-cat");var note=gvt("pl-note");var client=gvt("pl-client");
-  if(!date){toast("Please enter a date","error");return;}
-  if(window._plEditId){var eid=window._plEditId;
-    photoLib=photoLib.map(function(x){return x.id===eid?Object.assign({},x,{date:date,cat:cat,note:note,client:client}):x;});
-    window._plEditId=null;plSave();toast("Photo updated");closeModal();render();return;}
-  if(!window._plPending){toast("Please add a photo first","error");return;}
-  var pend=window._plPending;var pid=uid();
-  if(client)addHistory("clients",client);
-  var makeExp=cat==="Receipt"&&(document.getElementById("pl-makeexp")||{}).checked;
-  if(makeExp){
-    var amt=parseFloat(gv("pl-amount"));
-    if(!amt||amt<=0){toast("Enter the receipt amount (or untick \u2018save as expense\u2019)","error");return;}
-    amt=Math.round(amt*100)/100;
-    var gstInc=(document.getElementById("pl-gst")||{}).checked;
-    var expId=uid();
-    expenses.unshift({id:expId,date:date,category:gv("pl-expcat")||"Other",desc:note,amount:amt,gst:gstInc?Math.round(amt/11*100)/100:0,litres:0,client:client,createdAt:new Date().toISOString()});
-    savePhotos("expense",expId,[{id:pid,data:pend.full,caption:note,addedAt:new Date().toISOString(),sizeKb:pend.sizeKb}]);
-    photoLib.unshift({id:uid(),kind:"exp",expId:expId,photoId:pid,thumb:pend.thumb,date:date,cat:"Receipt",addedAt:new Date().toISOString()});
-    saveAll();plSave();toast("Receipt saved \u2014 "+fmtCur(amt)+" added to Expenses");
-  }else{
-    save("ae_photofull_"+pid,pend.full);
-    photoLib.unshift({id:pid,kind:"lib",date:date,cat:cat,note:note,client:client,thumb:pend.thumb,sizeKb:pend.sizeKb,addedAt:new Date().toISOString()});
-    plSave();toast("Photo saved");
-  }
-  window._plPending=null;closeModal();if(currentTab!=="photos")switchTab("photos");else render();}
+var date=gv("pl-date");var cat=gv("pl-cat");var note=gvt("pl-note");var client=gvt("pl-client");
+if(!date){toast("Please enter a date","error");return;}
+if(window._plEditId){var eid=window._plEditId;photoLib=photoLib.map(function(x){return x.id===eid?Object.assign({},x,{date:date,cat:cat,note:note,client:client}):x;});window._plEditId=null;plSave();toast("Photo updated");closeModal();render();return;}
+var list=window._plPendingList||[];
+if(!list.length){toast("Please add a photo first","error");return;}
+if(client)addHistory("clients",client);
+var makeExp=cat==="Receipt"&&(document.getElementById("pl-makeexp")||{}).checked;
+if(makeExp&&list.length>1){toast("For expense tracking add receipts one at a time (each needs its own amount) — or untick ‘save as expense’ to just back them up","error");return;}
+if(makeExp){
+var amt=parseFloat(gv("pl-amount"));
+if(!amt||amt<=0){toast("Enter the receipt amount (or untick ‘save as expense’)","error");return;}
+amt=Math.round(amt*100)/100;
+var gstInc=(document.getElementById("pl-gst")||{}).checked;
+var pend=list[0];var pid=uid();var expId=uid();
+expenses.unshift({id:expId,date:date,category:gv("pl-expcat")||"Other",desc:note,amount:amt,gst:gstInc?Math.round(amt/11*100)/100:0,litres:0,client:client,createdAt:new Date().toISOString()});
+savePhotos("expense",expId,[{id:pid,data:pend.full,caption:note,addedAt:new Date().toISOString(),sizeKb:pend.sizeKb}]);
+photoLib.unshift({id:uid(),kind:"exp",expId:expId,photoId:pid,thumb:pend.thumb,date:date,cat:"Receipt",addedAt:new Date().toISOString()});
+saveAll();plSave();toast("Receipt saved — "+fmtCur(amt)+" added to Expenses");
+}else{
+list.forEach(function(pend){var pid=uid();save("ae_photofull_"+pid,pend.full);photoLib.unshift({id:pid,kind:"lib",date:(list.length===1?date:(pend.date||date)),cat:cat,note:note,client:client,thumb:pend.thumb,sizeKb:pend.sizeKb,addedAt:new Date().toISOString()});});
+plSave();toast(list.length>1?list.length+" photos saved":"Photo saved");
+}
+window._plPendingList=null;closeModal();if(currentTab!=="photos")switchTab("photos");else render();}
 function plViewPhoto(id){var p=photoLib.find(function(x){return x.id===id;});if(!p)return;
   var show=function(data,cap){if(!data){toast("Full photo not on this device yet \u2014 syncing...","error");return;}
     document.getElementById("pv-img").src=data;var c=document.getElementById("pv-caption");
