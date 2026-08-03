@@ -59,7 +59,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v23"/>
+<meta name="version" content="v24"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -265,6 +265,7 @@ select option{background:#1a1a1a;color:#F0EDE8}
     <button class="nav-tab" data-tab="crew" onclick="switchTab('crew')">Crew</button>
     <button class="nav-tab" data-tab="invoices" onclick="switchTab('invoices')">Invoices</button>
     <button class="nav-tab" data-tab="expenses" onclick="switchTab('expenses')">Expenses</button>
+    <button class="nav-tab" data-tab="photos" onclick="switchTab('photos')">Photos</button>
     <button class="nav-tab" data-tab="rates" onclick="switchTab('rates')">Rates</button>
     <button class="nav-tab" data-tab="quotes" onclick="switchTab('quotes')">Quotes</button>
     <button class="nav-tab" data-tab="pay" onclick="switchTab('pay')">Pay</button>
@@ -313,9 +314,152 @@ function closePhotoViewer(e){if(e&&e.target&&e.target.tagName==="IMG")return;doc
 function renderPhotoSection(parentType,parentId,label){var photos=getPhotos(parentType,parentId);var lbl=label||"Photos";var inputId="photo-up-"+parentType+"-"+parentId;var thumbs=photos.map(function(p){return'<div class="photo-thumb-wrap"><img class="photo-thumb" src="'+p.data+'" onclick="viewPhotoFull(\''+parentType+'\',\''+parentId+'\',\''+p.id+'\')"/><button class="photo-del-btn" onclick="confirmDeletePhoto(\''+parentType+'\',\''+parentId+'\',\''+p.id+'\')">×</button></div>';}).join("");return'<div id="photo-section-'+parentType+'-'+parentId+'" style="background:#1C1C1C;border:1px solid #282828;border-radius:12px;padding:14px;margin-top:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:11px;color:#6E6B64;font-weight:700;letter-spacing:1.2px;text-transform:uppercase">'+lbl+' ('+photos.length+')</div><label for="'+inputId+'" class="photo-add-btn">+ Add Photo</label><input type="file" id="'+inputId+'" accept="image/*" style="display:none" onchange="handlePhotoUpload(event,\''+parentType+'\',\''+parentId+'\')"/></div>'+(photos.length?'<div class="photo-grid">'+thumbs+'</div>':'<div style="color:#6E6B64;font-size:12px;font-style:italic">No photos yet — tap "+ Add Photo" to attach one.</div>')+'</div>';}
 function refreshPhotoSection(parentType,parentId){var existing=document.getElementById("photo-section-"+parentType+"-"+parentId);if(!existing)return;existing.outerHTML=renderPhotoSection(parentType,parentId,parentType==="invoice"?"Documents & Photos":"Photos");}
 /* === END PHOTO HELPERS === */
+/* === v24: PHOTO LIBRARY TAB (receipts backup + job photos, organised by FY/date) === */
+var PL_CATS={"Receipt":"#22A05A","Job photo":"#E8580A","Machine & gear":"#F5C518","Site":"#2878CC"};
+function plFy(dateStr){var d=new Date((dateStr||fmtIsoDate(new Date()))+"T12:00:00");return d.getMonth()>=6?d.getFullYear():d.getFullYear()-1;}
+function plFyLabel(fy){return "FY "+fy+"\u2013"+String(fy+1).slice(2);}
+function plMonthLabel(dateStr){var d=new Date(dateStr+"T12:00:00");return d.toLocaleDateString("en-AU",{month:"long",year:"numeric"});}
+function plSave(){save("ae_photolib",photoLib);}
+function plEntryDisplay(p){
+  if(p.kind==="exp"){var e=expenses.find(function(x){return x.id===p.expId;});
+    if(e)return{date:e.date,cat:"Receipt",label:(e.desc||e.category||"Receipt"),amount:e.amount,client:e.client||"",gst:e.gst||0,expCat:e.category||""};
+    return{date:p.date,cat:"Receipt",label:"(expense deleted)",amount:null,client:"",gst:0,expCat:""};}
+  return{date:p.date,cat:p.cat,label:p.note||p.cat,amount:null,client:p.client||"",gst:0,expCat:""};}
+function openPhotoLibModal(editId){
+  var p=editId?photoLib.find(function(x){return x.id===editId;}):null;
+  if(editId&&!p)return;
+  if(p&&p.kind==="exp"){openExpenseModal(p.expId);return;}
+  window._plEditId=p?p.id:null;window._plPending=null;
+  var overlay=document.getElementById("overlay");overlay.classList.add("open");
+  document.getElementById("modal-title").textContent=p?"Edit Photo":"Add Photo";
+  var iS=' style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit;font-size:14px"';
+  var catOpts=Object.keys(PL_CATS).map(function(c){return'<option'+((p?p.cat:"Receipt")===c?" selected":"")+'>'+c+'</option>';}).join("");
+  var expCatOpts=Object.keys(EXP_CATEGORIES).map(function(c){return'<option'+(c==="Other"?" selected":"")+'>'+c+'</option>';}).join("");
+  document.getElementById("modal-body").innerHTML=
+  (p?'':'<div class="field"><label>Photo *</label><label for="pl-file" class="photo-add-btn" id="pl-file-btn" style="display:inline-block">\uD83D\uDCF7 Take / choose photo</label><input type="file" id="pl-file" accept="image/*" style="display:none" onchange="plHandleFile(event)"/><div id="pl-file-hint" style="font-size:11px;color:#6E6B64;margin-top:6px">No photo selected yet</div><img id="pl-preview" style="display:none;max-width:120px;border-radius:8px;margin-top:8px"/></div>')+
+  '<div class="field-row"><div class="field"><label>Date *</label><input id="pl-date" type="date" value="'+(p?p.date:fmtIsoDate(new Date()))+'"'+iS+'/></div>'+
+  '<div class="field"><label>Type</label><select id="pl-cat" onchange="plCatChange()"'+iS+'>'+catOpts+'</select></div></div>'+
+  '<div id="pl-exp-wrap" style="display:'+((p?p.cat:"Receipt")==="Receipt"?"block":"none")+'">'+
+    '<div style="background:#22A05A18;border:1px solid #22A05A44;border-radius:10px;padding:12px;margin-bottom:12px">'+
+    '<label style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><input type="checkbox" id="pl-makeexp" checked style="width:16px;height:16px;accent-color:#22A05A"/><span style="font-size:12px;color:#C8C4BE">Also save as an Expense (tracks the cost)</span></label>'+
+    '<div class="field-row"><div class="field"><label>Amount ($)</label><input id="pl-amount" type="number" step="0.01" inputmode="decimal" placeholder="0.00"'+iS+'/></div>'+
+    '<div class="field"><label>Expense category</label><select id="pl-expcat"'+iS+'>'+expCatOpts+'</select></div></div>'+
+    '<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="pl-gst" checked style="width:16px;height:16px;accent-color:#22A05A"/><span style="font-size:12px;color:#C8C4BE">Price includes 10% GST</span></label></div></div>'+
+  '<div class="field"><label>Description / supplier</label><input id="pl-note" value="'+esc(p?(p.note||""):"")+'" placeholder="e.g. Diesel \u2014 Victor Harbor BP"'+iS+'/></div>'+
+  '<div class="field"><label>Client / Job (optional)</label>'+smartInput("pl-client","clients","Link to a client if job-specific",p?(p.client||""):"")+'</div>'+
+  '<div style="display:flex;gap:10px;margin-top:12px"><button class="btn-primary" style="flex:1" onclick="savePhotoLibEntry()">'+(p?"Save Changes":"Save Photo")+'</button><button class="btn-ghost" onclick="closeModal()">Cancel</button></div>';
+}
+function plCatChange(){var c=gv("pl-cat");var w=document.getElementById("pl-exp-wrap");if(w)w.style.display=(c==="Receipt"&&!window._plEditId)?"block":"none";}
+function plHandleFile(event){var file=event.target.files&&event.target.files[0];event.target.value="";if(!file)return;
+  if(!file.type.match(/^image\//)){toast("Please pick an image file","error");return;}
+  toast("Processing photo...");
+  Promise.all([compressImage(file,1200,0.8),compressImage(file,150,0.55)]).then(function(r){
+    var sizeKb=Math.round(r[0].length/1024);
+    if(sizeKb>900){toast("Photo too large after compression ("+sizeKb+"KB)","error");return;}
+    window._plPending={full:r[0],thumb:r[1],sizeKb:sizeKb};
+    var pv=document.getElementById("pl-preview");if(pv){pv.src=r[1];pv.style.display="block";}
+    var h=document.getElementById("pl-file-hint");if(h)h.textContent="Photo ready ("+sizeKb+"KB)";
+  }).catch(function(err){toast("Could not process photo: "+(err.message||"error"),"error");});}
+function savePhotoLibEntry(){
+  var date=gv("pl-date");var cat=gv("pl-cat");var note=gvt("pl-note");var client=gvt("pl-client");
+  if(!date){toast("Please enter a date","error");return;}
+  if(window._plEditId){var eid=window._plEditId;
+    photoLib=photoLib.map(function(x){return x.id===eid?Object.assign({},x,{date:date,cat:cat,note:note,client:client}):x;});
+    window._plEditId=null;plSave();toast("Photo updated");closeModal();render();return;}
+  if(!window._plPending){toast("Please add a photo first","error");return;}
+  var pend=window._plPending;var pid=uid();
+  if(client)addHistory("clients",client);
+  var makeExp=cat==="Receipt"&&(document.getElementById("pl-makeexp")||{}).checked;
+  if(makeExp){
+    var amt=parseFloat(gv("pl-amount"));
+    if(!amt||amt<=0){toast("Enter the receipt amount (or untick \u2018save as expense\u2019)","error");return;}
+    amt=Math.round(amt*100)/100;
+    var gstInc=(document.getElementById("pl-gst")||{}).checked;
+    var expId=uid();
+    expenses.unshift({id:expId,date:date,category:gv("pl-expcat")||"Other",desc:note,amount:amt,gst:gstInc?Math.round(amt/11*100)/100:0,litres:0,client:client,createdAt:new Date().toISOString()});
+    savePhotos("expense",expId,[{id:pid,data:pend.full,caption:note,addedAt:new Date().toISOString(),sizeKb:pend.sizeKb}]);
+    photoLib.unshift({id:uid(),kind:"exp",expId:expId,photoId:pid,thumb:pend.thumb,date:date,cat:"Receipt",addedAt:new Date().toISOString()});
+    saveAll();plSave();toast("Receipt saved \u2014 "+fmtCur(amt)+" added to Expenses");
+  }else{
+    save("ae_photofull_"+pid,pend.full);
+    photoLib.unshift({id:pid,kind:"lib",date:date,cat:cat,note:note,client:client,thumb:pend.thumb,sizeKb:pend.sizeKb,addedAt:new Date().toISOString()});
+    plSave();toast("Photo saved");
+  }
+  window._plPending=null;closeModal();if(currentTab!=="photos")switchTab("photos");else render();}
+function plViewPhoto(id){var p=photoLib.find(function(x){return x.id===id;});if(!p)return;
+  var show=function(data,cap){if(!data){toast("Full photo not on this device yet \u2014 syncing...","error");return;}
+    document.getElementById("pv-img").src=data;var c=document.getElementById("pv-caption");
+    if(cap){c.textContent=cap;c.style.display="block";}else{c.style.display="none";}
+    document.getElementById("photo-viewer").classList.add("open");};
+  var d=plEntryDisplay(p);var cap=(d.label||"")+(d.amount?" \u2014 "+fmtCur(d.amount):"")+"  ("+fmtDate(d.date)+")";
+  if(p.kind==="exp"){var ph=getPhotos("expense",p.expId).find(function(x){return x.id===p.photoId;});
+    if(ph){show(ph.data,cap);}else{fetchPhotosFromCloud("expense",p.expId,function(){var ph2=getPhotos("expense",p.expId).find(function(x){return x.id===p.photoId;});show(ph2?ph2.data:null,cap);});}
+  }else{var full=load("ae_photofull_"+p.id,null);
+    if(full){show(full,cap);}else if(typeof db!=="undefined"){db.collection("ae_data").doc("ae_photofull_"+p.id).get().then(function(doc){
+      if(doc.exists){var val=JSON.parse(doc.data().d);try{localStorage.setItem("ae_photofull_"+p.id,JSON.stringify(val));}catch(e){}show(val,cap);}else show(null,cap);}).catch(function(){show(null,cap);});}
+    else show(null,cap);}}
+function plDelete(id){var p=photoLib.find(function(x){return x.id===id;});if(!p)return;
+  if(!confirm(p.kind==="exp"?"Remove this receipt photo from the library? (The expense itself stays in Expenses.)":"Delete this photo?"))return;
+  if(p.kind==="exp"){var ph=getPhotos("expense",p.expId).filter(function(x){return x.id!==p.photoId;});savePhotos("expense",p.expId,ph);}
+  else{try{localStorage.removeItem("ae_photofull_"+p.id);}catch(e){}try{if(typeof db!=="undefined")db.collection("ae_data").doc("ae_photofull_"+p.id).delete().catch(function(){});}catch(e){}}
+  photoLib=photoLib.filter(function(x){return x.id!==id;});plSave();toast("Photo removed");render();}
+function renderPhotosTab(){
+  var f=window._plFilter||{cat:"All"};
+  var entries=photoLib.slice().map(function(p){var d=plEntryDisplay(p);return{p:p,d:d};});
+  entries.sort(function(a,b){return (b.d.date||"").localeCompare(a.d.date||"");});
+  var shown=entries.filter(function(x){return f.cat==="All"||x.d.cat===f.cat;});
+  var nowFy=plFy(fmtIsoDate(new Date()));
+  var fyRec=entries.filter(function(x){return x.d.cat==="Receipt"&&plFy(x.d.date)===nowFy&&x.d.amount;});
+  var fyTot=fyRec.reduce(function(a,x){return a+x.d.amount;},0);
+  var stats='<div class="stats-row">'+
+    '<div class="stat"><div class="stat-label">Photos saved</div><div class="stat-value" style="color:#E8580A">'+photoLib.length+'</div></div>'+
+    '<div class="stat"><div class="stat-label">Receipts \u00b7 '+plFyLabel(nowFy)+'</div><div class="stat-value" style="color:#22A05A">'+fyRec.length+'</div><div style="font-size:11px;color:#6E6B64;margin-top:5px">'+fmtCur(fyTot)+' tracked</div></div></div>';
+  var chips=["All"].concat(Object.keys(PL_CATS)).map(function(c){
+    return'<button onclick="window._plFilter={cat:\''+c+'\'};render()" style="background:'+(f.cat===c?"#E8580A":"none")+';border:1px solid '+(f.cat===c?"#E8580A":"#282828")+';color:'+(f.cat===c?"#fff":"#6E6B64")+';border-radius:20px;padding:7px 14px;font-size:12px;font-family:inherit;cursor:pointer">'+c+'</button>';}).join("");
+  var body="";var curFy=null;var curMonth=null;
+  if(!shown.length){body='<div style="color:#6E6B64;font-size:13px;font-style:italic;padding:30px 0;text-align:center">No photos yet \u2014 tap \u201c+ Add Photo\u201d to save your first receipt or job photo.</div>';}
+  shown.forEach(function(x){
+    var fy=plFy(x.d.date);var mo=(x.d.date||"").slice(0,7);
+    if(fy!==curFy){if(curFy!==null)body+='</div>';curFy=fy;curMonth=null;
+      body+='<div style="display:flex;justify-content:space-between;align-items:center;margin:22px 0 4px"><div style="font-size:14px;font-weight:700;color:#F0EDE8">'+plFyLabel(fy)+'</div><button class="btn-ghost" style="font-size:11px;padding:6px 12px" onclick="plTaxPack('+fy+')">\uD83E\uDDFE Tax pack</button></div><div>';}
+    if(mo!==curMonth){curMonth=mo;body+='<div style="font-size:11px;color:#6E6B64;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin:12px 0 8px">'+plMonthLabel(x.d.date)+'</div>';}
+    var badge=PL_CATS[x.d.cat]||"#6E6B64";
+    body+='<div style="display:inline-block;vertical-align:top;width:31%;min-width:100px;margin:0 1% 12px;background:#1C1C1C;border:1px solid #282828;border-radius:10px;overflow:hidden">'+
+      '<img src="'+x.p.thumb+'" style="width:100%;height:90px;object-fit:cover;cursor:pointer;display:block" onclick="plViewPhoto(\''+x.p.id+'\')"/>'+
+      '<div style="padding:7px 8px">'+
+      '<div style="font-size:10px;color:'+badge+';font-weight:700">'+esc(x.d.cat)+(x.d.amount?' \u00b7 '+fmtCur(x.d.amount):'')+'</div>'+
+      '<div style="font-size:10px;color:#C8C4BE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(x.d.label||"")+'</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px"><span style="font-size:9px;color:#6E6B64">'+fmtDate(x.d.date)+'</span>'+
+      '<span><a style="font-size:10px;color:#2878CC;cursor:pointer" onclick="openPhotoLibModal(\''+x.p.id+'\')">edit</a> <a style="font-size:10px;color:#D93B3B;cursor:pointer" onclick="plDelete(\''+x.p.id+'\')">del</a></span></div>'+
+      '</div></div>';});
+  if(curFy!==null)body+='</div>';
+  return'<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><h2 style="margin:0">Photos</h2><button class="btn-primary" onclick="openPhotoLibModal()">+ Add Photo</button></div>'+
+    '<div style="font-size:12px;color:#6E6B64;margin-top:6px">Receipts are backed up here and can be tracked as expenses. Everything is grouped by financial year for tax time.</div>'+
+    stats+'<div style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0">'+chips+'</div>'+body+'</div>';}
+function plTaxPack(fy){
+  var recs=photoLib.map(function(p){return{p:p,d:plEntryDisplay(p)};}).filter(function(x){return x.d.cat==="Receipt"&&plFy(x.d.date)===fy;});
+  if(!recs.length){toast("No receipts saved for "+plFyLabel(fy),"error");return;}
+  toast("Building tax pack...");
+  var loads=recs.map(function(x){return new Promise(function(res){
+    if(x.p.kind==="exp"){var ph=getPhotos("expense",x.p.expId).find(function(q){return q.id===x.p.photoId;});
+      if(ph)res({x:x,data:ph.data});
+      else fetchPhotosFromCloud("expense",x.p.expId,function(){var ph2=getPhotos("expense",x.p.expId).find(function(q){return q.id===x.p.photoId;});res({x:x,data:ph2?ph2.data:x.p.thumb});});}
+    else{var full=load("ae_photofull_"+x.p.id,null);res({x:x,data:full||x.p.thumb});}});});
+  Promise.all(loads).then(function(items){
+    items.sort(function(a,b){return (a.x.d.date||"").localeCompare(b.x.d.date||"");});
+    var tot=0,gstTot=0;
+    var rows=items.map(function(it){var d=it.x.d;tot+=(d.amount||0);gstTot+=(d.gst||0);
+      return'<div style="page-break-inside:avoid;border:1px solid #ddd;border-radius:8px;margin-bottom:14px;overflow:hidden"><img src="'+it.data+'" style="width:100%;max-height:480px;object-fit:contain;background:#f6f6f6"/><div style="padding:10px 14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:13px"><span><b>'+esc(d.label||"Receipt")+'</b>'+(d.client?' \u00b7 '+esc(d.client):'')+'<br/><span style="color:#888">'+fmtDate(d.date)+' \u00b7 '+esc(d.expCat||"")+'</span></span><span style="text-align:right"><b>'+(d.amount?fmtCur(d.amount):"\u2014")+'</b>'+(d.gst?'<br/><span style="color:#888;font-size:11px">incl. GST '+fmtCur(d.gst)+'</span>':'')+'</span></div></div>';}).join("");
+    var noPhoto=expenses.filter(function(e){return e.date&&plFy(e.date)===fy&&!photoLib.some(function(p){return p.kind==="exp"&&p.expId===e.id;});});
+    var missing=noPhoto.length?'<h3 style="margin-top:26px">Expenses with no receipt photo ('+noPhoto.length+')</h3><table style="width:100%;border-collapse:collapse;font-size:12px">'+noPhoto.map(function(e){return'<tr><td style="padding:4px 6px;border-bottom:1px solid #eee">'+fmtDate(e.date)+'</td><td style="padding:4px 6px;border-bottom:1px solid #eee">'+esc(e.desc||e.category)+'</td><td style="padding:4px 6px;border-bottom:1px solid #eee;text-align:right">'+fmtCur(e.amount)+'</td></tr>';}).join("")+'</table>':'';
+    var w=window.open("","_blank");
+    if(!w){toast("Popup blocked \u2014 allow popups to build the tax pack","error");return;}
+    w.document.write('<!DOCTYPE html><html><head><title>Receipt Pack '+plFyLabel(fy)+' \u2014 Angel Earthworks and Civil</title><meta name="viewport" content="width=device-width,initial-scale=1"/><style>body{font-family:Arial,sans-serif;max-width:700px;margin:24px auto;padding:0 16px;color:#1a1a1a}.print-btn{position:fixed;top:16px;right:16px;background:#E8580A;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer}@media print{.print-btn{display:none}}</style></head><body><button class="print-btn" onclick="window.print()">Print / Save PDF</button><h2 style="margin-bottom:2px">Receipt Pack \u2014 '+plFyLabel(fy)+'</h2><div style="color:#888;font-size:13px;margin-bottom:6px">Angel Earthworks and Civil \u00b7 ABN '+esc(settings.abn||"12 173 760 280")+'</div><div style="background:#f4f4f4;border-radius:8px;padding:12px 16px;margin:14px 0;font-size:14px"><b>'+items.length+'</b> receipts \u00b7 Total <b>'+fmtCur(tot)+'</b> \u00b7 GST included <b>'+fmtCur(gstTot)+'</b></div>'+rows+missing+'<div style="color:#aaa;font-size:11px;margin-top:20px;text-align:center">Generated '+new Date().toLocaleDateString("en-AU")+' \u2014 Angel Earthworks and Civil app</div></body></html>');
+    w.document.close();});}
+/* === END v24 PHOTO LIBRARY === */
 /* FIX: ae_active added to synced keys so live session syncs across devices */
-function syncFromFirebase(cb){if(typeof db==="undefined"){if(cb)cb();return;}var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_settings","ae_site_locations","ae_pins","ae_active","ae_clocked"];var done=0;keys.forEach(function(k){db.collection("ae_data").doc(k).get().then(function(doc){if(doc.exists){try{localStorage.setItem(k,JSON.stringify(JSON.parse(doc.data().d)));}catch(e){}}done++;if(done===keys.length&&cb)cb();}).catch(function(){done++;if(done===keys.length&&cb)cb();});});}
-function startFirebaseListeners(){if(typeof db==="undefined")return;["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_settings","ae_pins","ae_active","ae_clocked"].forEach(function(k){db.collection("ae_data").doc(k).onSnapshot(function(doc){if(!doc.exists)return;try{var val=JSON.parse(doc.data().d);try{localStorage.setItem(k,JSON.stringify(val));}catch(e){}if(k==="ae_sessions"){sessions=val;sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});}if(k==="ae_crew")crew=val;if(k==="ae_invoices")invoices=val;if(k==="ae_quotes")quotes=val;if(k==="ae_payruns")payRuns=val;if(k==="ae_bookings")bookings=val;if(k==="ae_availability")availability=val;if(k==="ae_compliance")compliance=val;if(k==="ae_expenses")expenses=val;if(k==="ae_settings")settings=Object.assign({},DS,val);if(k==="ae_pins")crewMembers=val;if(k==="ae_active"){activeSession=val;updateBanner();}if(k==="ae_clocked"){if(currentUser&&currentUser.role==="crew"){var _all=(val&&val.memberId)?(function(){var o={};o[val.memberId]=val;return o;})():(val||{});crewClocked=_all[currentUser.id]||null;if(crewClocked){showCrewBanner();startCrewTimer();}else{hideCrewBanner();stopCrewTimer();}}}var modalOpen=document.getElementById("overlay")&&document.getElementById("overlay").classList.contains("open");if(currentUser&&currentUser.role==="manager"&&!modalOpen){try{render();}catch(e){}}if(currentUser&&currentUser.role==="crew"&&!modalOpen){try{crewDrawTab();}catch(e){}}}catch(e){}},function(){});});}
+function syncFromFirebase(cb){if(typeof db==="undefined"){if(cb)cb();return;}var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_settings","ae_site_locations","ae_pins","ae_active","ae_clocked"];var done=0;keys.forEach(function(k){db.collection("ae_data").doc(k).get().then(function(doc){if(doc.exists){try{localStorage.setItem(k,JSON.stringify(JSON.parse(doc.data().d)));}catch(e){}}done++;if(done===keys.length&&cb)cb();}).catch(function(){done++;if(done===keys.length&&cb)cb();});});}
+function startFirebaseListeners(){if(typeof db==="undefined")return;["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_settings","ae_pins","ae_active","ae_clocked"].forEach(function(k){db.collection("ae_data").doc(k).onSnapshot(function(doc){if(!doc.exists)return;try{var val=JSON.parse(doc.data().d);try{localStorage.setItem(k,JSON.stringify(val));}catch(e){}if(k==="ae_sessions"){sessions=val;sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});}if(k==="ae_crew")crew=val;if(k==="ae_invoices")invoices=val;if(k==="ae_quotes")quotes=val;if(k==="ae_payruns")payRuns=val;if(k==="ae_bookings")bookings=val;if(k==="ae_availability")availability=val;if(k==="ae_compliance")compliance=val;if(k==="ae_expenses")expenses=val;if(k==="ae_photolib")photoLib=val;if(k==="ae_settings")settings=Object.assign({},DS,val);if(k==="ae_pins")crewMembers=val;if(k==="ae_active"){activeSession=val;updateBanner();}if(k==="ae_clocked"){if(currentUser&&currentUser.role==="crew"){var _all=(val&&val.memberId)?(function(){var o={};o[val.memberId]=val;return o;})():(val||{});crewClocked=_all[currentUser.id]||null;if(crewClocked){showCrewBanner();startCrewTimer();}else{hideCrewBanner();stopCrewTimer();}}}var modalOpen=document.getElementById("overlay")&&document.getElementById("overlay").classList.contains("open");if(currentUser&&currentUser.role==="manager"&&!modalOpen){try{render();}catch(e){}}if(currentUser&&currentUser.role==="crew"&&!modalOpen){try{crewDrawTab();}catch(e){}}}catch(e){}},function(){});});}
 
 var sessions=load("ae_sessions",[]);
 sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});
@@ -326,7 +470,8 @@ var payRuns=load("ae_payruns",[]);
 var bookings=load("ae_bookings",[]);
 var availability=load("ae_availability",{});
 var compliance=load("ae_compliance",[]);
-var expenses=load("ae_expenses",[]);/* v23: purchases for BAS 1B + fuel tax credits */
+var expenses=load("ae_expenses",[]);
+var photoLib=load("ae_photolib",[]);/* v23: purchases for BAS 1B + fuel tax credits */
 var settings=Object.assign({},DS,load("ae_settings",{}));
 if(!settings.rates)settings.rates=Object.assign({},DR);
 Object.keys(DR).forEach(function(k){if(settings.rates[k]===undefined)settings.rates[k]=DR[k];});
@@ -578,6 +723,7 @@ else if(currentTab==="diary")main.innerHTML=renderDiary();
 else if(currentTab==="crew")main.innerHTML=renderCrew();
 else if(currentTab==="invoices")main.innerHTML=renderInvoices();
 else if(currentTab==="expenses")main.innerHTML=renderExpenses();
+else if(currentTab==="photos")main.innerHTML=renderPhotosTab();
 else if(currentTab==="rates")main.innerHTML=renderRates();
 else if(currentTab==="quotes")renderQuotes();
 else if(currentTab==="pay")main.innerHTML=renderPay();
