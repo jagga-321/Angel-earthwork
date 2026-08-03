@@ -59,7 +59,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v26"/>
+<meta name="version" content="v27"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -356,7 +356,7 @@ files=files.filter(function(f){return f.type.match(/^image\//);});
 if(!files.length){toast("Please pick image files","error");return;}
 if(files.length>15){files=files.slice(0,15);toast("Max 15 photos at a time — taking the first 15");}
 toast("Processing "+files.length+" photo"+(files.length>1?"s":"")+"...");
-Promise.all(files.map(function(f){return Promise.all([compressImage(f,1200,0.8),compressImage(f,150,0.55),plExifDate(f)]).then(function(r){var kb=Math.round(r[0].length/1024);if(kb>900)return null;return{full:r[0],thumb:r[1],sizeKb:kb,date:r[2]||(f.lastModified?fmtIsoDate(new Date(f.lastModified)):null)};});})).then(function(list){
+Promise.all(files.map(function(f){return Promise.all([compressImage(f,1200,0.8),compressImage(f,150,0.55),plExifDate(f)]).then(function(r){var kb=Math.round(r[0].length/1024);if(kb>900)return null;return{full:r[0],thumb:r[1],sizeKb:kb,file:f,date:r[2]||(f.lastModified?fmtIsoDate(new Date(f.lastModified)):null)};});})).then(function(list){
 list=list.filter(function(x){return x;});
 if(!list.length){toast("Photos too large after compression","error");return;}
 window._plPendingList=list;
@@ -462,15 +462,16 @@ function plTaxPack(fy){
 function plLoadOcr(){return window.Tesseract?Promise.resolve():new Promise(function(res,rej){var sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js";sc.onload=function(){res();};sc.onerror=function(){rej(new Error("Couldn't load the text reader — check your internet"));};document.head.appendChild(sc);});}
 function plReadReceipt(){var list=window._plPendingList||[];if(!list.length){toast("Add the receipt photo first","error");return;}
 var btn=document.getElementById("pl-ocr-btn");if(btn){btn.textContent="Reading receipt... (first go can take ~20 sec)";btn.disabled=true;}
-plLoadOcr().then(function(){return Tesseract.recognize(list[0].full,"eng");}).then(function(res){
-var text=(res&&res.data&&res.data.text)||"";plApplyOcr(text);
+plLoadOcr().then(function(){return Tesseract.recognize(list[0].file||list[0].full,"eng");}).then(function(res){
+var text=(res&&res.data&&res.data.text)||"";var conf=(res&&res.data&&res.data.confidence)||0;
+if(conf<40||text.replace(/[^A-Za-z0-9]/g,"").length<12){toast("That photo is too blurry to read — flatten the receipt, good light, straight above, and try again","error");}else{plApplyOcr(text);}
 if(btn){btn.textContent="🔍 Read amount & details from the receipt";btn.disabled=false;}
 }).catch(function(err){toast(err.message||"Couldn't read the receipt","error");if(btn){btn.textContent="🔍 Read amount & details from the receipt";btn.disabled=false;}});}
 function plApplyOcr(text){
 var lines=text.split(/\n/).map(function(l){return l.trim();}).filter(Boolean);
 var filled=[];
 var amts=[];var totalAmt=null;
-lines.forEach(function(l){var mm=l.match(/(\d{1,5}[.,]\d{2})/g);if(!mm)return;mm.forEach(function(a){var v=parseFloat(a.replace(",","."));if(v>0&&v<100000){amts.push(v);if(/total|amount due|amt due|balance|eftpos|visa|mastercard/i.test(l)&&!/sub\s?total/i.test(l)){if(totalAmt===null||v>totalAmt)totalAmt=v;}}});});
+lines.forEach(function(l){var mm=l.match(/(\d{1,5}[.,]\d{2})\b/g);if(!mm)return;var isTotalLine=/total|amount due|amt due|balance|eftpos|visa|mastercard/i.test(l)&&!/sub\s?total/i.test(l);mm.forEach(function(a){var v=parseFloat(a.replace(",","."));if(v<=0)return;var bigDigits=a.split(/[.,]/)[0].length;if(isTotalLine&&v<100000){if(totalAmt===null||v>totalAmt)totalAmt=v;}else if(bigDigits<=4&&v<=5000){amts.push(v);}});});
 var amt=totalAmt!==null?totalAmt:(amts.length?Math.max.apply(null,amts):null);
 var ai=document.getElementById("pl-amount");
 if(amt&&ai&&!ai.value){ai.value=amt.toFixed(2);filled.push("amount");}
@@ -478,7 +479,8 @@ var d=null;var m1=text.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
 if(m1){var dd=+m1[1],mo=+m1[2],yy=+m1[3];if(yy<100)yy+=2000;if(mo>=1&&mo<=12&&dd>=1&&dd<=31&&yy>2000&&yy<2100)d=yy+"-"+("0"+mo).slice(-2)+"-"+("0"+dd).slice(-2);}
 if(!d){var m2=text.match(/(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{4})/i);if(m2){var mos={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};var mn=mos[m2[2].slice(0,3).toLowerCase()];d=m2[3]+"-"+("0"+mn).slice(-2)+"-"+("0"+(+m2[1])).slice(-2);}}
 if(d&&document.getElementById("pl-date")){document.getElementById("pl-date").value=d;filled.push("date");}
-var sup=null;for(var i=0;i<Math.min(lines.length,6);i++){var l=lines[i];if(/tax invoice|receipt|invoice|abn|gst|welcome|thank/i.test(l))continue;var letters=(l.match(/[A-Za-z]/g)||[]).length;if(letters>=3&&!/^\d/.test(l)){sup=l.replace(/\s+/g," ").slice(0,40);break;}}
+var sup=null;var supStop=/^(are|the|and|for|you|our|your|this|that|with|from|tax invoice|invoice|receipt|abn|gst|eftpos|welcome|thanks?|thank you|customer|copy|store|shop)$/i;
+for(var i=0;i<Math.min(lines.length,6);i++){var l=lines[i].replace(/\s+/g," ").trim();if(/tax invoice|receipt|invoice|abn|gst|welcome|thank/i.test(l))continue;var letters=(l.match(/[A-Za-z]/g)||[]).length;var words=l.split(" ").filter(function(w){return (w.match(/[A-Za-z]/g)||[]).length>=2;});var hasRealWord=words.some(function(w){return w.length>=4;});if(letters>=5&&letters/l.length>0.5&&hasRealWord&&!supStop.test(l)&&!/^\d/.test(l)){sup=l.slice(0,40);break;}}
 var ni=document.getElementById("pl-note");
 if(sup&&ni&&!ni.value){ni.value=sup;filled.push("supplier");}
 var catSel=document.getElementById("pl-expcat");
