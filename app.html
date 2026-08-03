@@ -59,7 +59,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v25"/>
+<meta name="version" content="v26"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -341,7 +341,7 @@ function openPhotoLibModal(editId){
   '<div class="field"><label>Type</label><select id="pl-cat" onchange="plCatChange()"'+iS+'>'+catOpts+'</select></div></div>'+
   '<div id="pl-exp-wrap" style="display:'+((p?p.cat:"Receipt")==="Receipt"?"block":"none")+'">'+
     '<div style="background:#22A05A18;border:1px solid #22A05A44;border-radius:10px;padding:12px;margin-bottom:12px">'+
-    '<label style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><input type="checkbox" id="pl-makeexp" checked style="width:16px;height:16px;accent-color:#22A05A"/><span style="font-size:12px;color:#C8C4BE">Also save as an Expense (tracks the cost)</span></label>'+
+    '<button id="pl-ocr-btn" onclick="plReadReceipt()" style="width:100%;margin-bottom:10px;background:none;border:1px dashed #22A05A88;border-radius:8px;color:#22A05A;padding:10px;font-family:inherit;font-size:12px;cursor:pointer">🔍 Read amount &amp; details from the receipt</button><label style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><input type="checkbox" id="pl-makeexp" checked style="width:16px;height:16px;accent-color:#22A05A"/><span style="font-size:12px;color:#C8C4BE">Also save as an Expense (tracks the cost)</span></label>'+
     '<div class="field-row"><div class="field"><label>Amount ($)</label><input id="pl-amount" type="number" step="0.01" inputmode="decimal" placeholder="0.00"'+iS+'/></div>'+
     '<div class="field"><label>Expense category</label><select id="pl-expcat"'+iS+'>'+expCatOpts+'</select></div></div>'+
     '<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="pl-gst" checked style="width:16px;height:16px;accent-color:#22A05A"/><span style="font-size:12px;color:#C8C4BE">Price includes 10% GST</span></label></div></div>'+
@@ -459,6 +459,37 @@ function plTaxPack(fy){
     if(!w){toast("Popup blocked \u2014 allow popups to build the tax pack","error");return;}
     w.document.write('<!DOCTYPE html><html><head><title>Receipt Pack '+plFyLabel(fy)+' \u2014 Angel Earthworks and Civil</title><meta name="viewport" content="width=device-width,initial-scale=1"/><style>body{font-family:Arial,sans-serif;max-width:700px;margin:24px auto;padding:0 16px;color:#1a1a1a}.print-btn{position:fixed;top:16px;right:16px;background:#E8580A;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer}@media print{.print-btn{display:none}}</style></head><body><button class="print-btn" onclick="window.print()">Print / Save PDF</button><h2 style="margin-bottom:2px">Receipt Pack \u2014 '+plFyLabel(fy)+'</h2><div style="color:#888;font-size:13px;margin-bottom:6px">Angel Earthworks and Civil \u00b7 ABN '+esc(settings.abn||"12 173 760 280")+'</div><div style="background:#f4f4f4;border-radius:8px;padding:12px 16px;margin:14px 0;font-size:14px"><b>'+items.length+'</b> receipts \u00b7 Total <b>'+fmtCur(tot)+'</b> \u00b7 GST included <b>'+fmtCur(gstTot)+'</b></div>'+rows+missing+'<div style="color:#aaa;font-size:11px;margin-top:20px;text-align:center">Generated '+new Date().toLocaleDateString("en-AU")+' \u2014 Angel Earthworks and Civil app</div></body></html>');
     w.document.close();});}
+function plLoadOcr(){return window.Tesseract?Promise.resolve():new Promise(function(res,rej){var sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js";sc.onload=function(){res();};sc.onerror=function(){rej(new Error("Couldn't load the text reader — check your internet"));};document.head.appendChild(sc);});}
+function plReadReceipt(){var list=window._plPendingList||[];if(!list.length){toast("Add the receipt photo first","error");return;}
+var btn=document.getElementById("pl-ocr-btn");if(btn){btn.textContent="Reading receipt... (first go can take ~20 sec)";btn.disabled=true;}
+plLoadOcr().then(function(){return Tesseract.recognize(list[0].full,"eng");}).then(function(res){
+var text=(res&&res.data&&res.data.text)||"";plApplyOcr(text);
+if(btn){btn.textContent="🔍 Read amount & details from the receipt";btn.disabled=false;}
+}).catch(function(err){toast(err.message||"Couldn't read the receipt","error");if(btn){btn.textContent="🔍 Read amount & details from the receipt";btn.disabled=false;}});}
+function plApplyOcr(text){
+var lines=text.split(/\n/).map(function(l){return l.trim();}).filter(Boolean);
+var filled=[];
+var amts=[];var totalAmt=null;
+lines.forEach(function(l){var mm=l.match(/(\d{1,5}[.,]\d{2})/g);if(!mm)return;mm.forEach(function(a){var v=parseFloat(a.replace(",","."));if(v>0&&v<100000){amts.push(v);if(/total|amount due|amt due|balance|eftpos|visa|mastercard/i.test(l)&&!/sub\s?total/i.test(l)){if(totalAmt===null||v>totalAmt)totalAmt=v;}}});});
+var amt=totalAmt!==null?totalAmt:(amts.length?Math.max.apply(null,amts):null);
+var ai=document.getElementById("pl-amount");
+if(amt&&ai&&!ai.value){ai.value=amt.toFixed(2);filled.push("amount");}
+var d=null;var m1=text.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+if(m1){var dd=+m1[1],mo=+m1[2],yy=+m1[3];if(yy<100)yy+=2000;if(mo>=1&&mo<=12&&dd>=1&&dd<=31&&yy>2000&&yy<2100)d=yy+"-"+("0"+mo).slice(-2)+"-"+("0"+dd).slice(-2);}
+if(!d){var m2=text.match(/(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{4})/i);if(m2){var mos={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};var mn=mos[m2[2].slice(0,3).toLowerCase()];d=m2[3]+"-"+("0"+mn).slice(-2)+"-"+("0"+(+m2[1])).slice(-2);}}
+if(d&&document.getElementById("pl-date")){document.getElementById("pl-date").value=d;filled.push("date");}
+var sup=null;for(var i=0;i<Math.min(lines.length,6);i++){var l=lines[i];if(/tax invoice|receipt|invoice|abn|gst|welcome|thank/i.test(l))continue;var letters=(l.match(/[A-Za-z]/g)||[]).length;if(letters>=3&&!/^\d/.test(l)){sup=l.replace(/\s+/g," ").slice(0,40);break;}}
+var ni=document.getElementById("pl-note");
+if(sup&&ni&&!ni.value){ni.value=sup;filled.push("supplier");}
+var catSel=document.getElementById("pl-expcat");
+if(catSel){var t=text.toLowerCase();var guess=null;
+if(/diesel|fuel|unleaded|litre|\bbp\b|shell|caltex|ampol|mobil|petroleum/.test(t))guess="Diesel";
+else if(/tip fee|waste|landfill|transfer station/.test(t))guess="Tip Fees";
+else if(/bunnings|mitre 10|home hardware|timber|cement|concrete|gravel|sand|quarry/.test(t))guess="Materials";
+else if(/repair|hose|filter|parts|bearing|hydraulic|service/.test(t))guess="Repairs & Maintenance";
+else if(/tool|equipment/.test(t))guess="Tools & Equipment";
+if(guess){catSel.value=guess;filled.push("category");}}
+if(filled.length){toast("Auto-filled "+filled.join(", ")+" — double-check before saving");}else{toast("Couldn't read the details clearly — type them in","error");}}
 /* === END v24 PHOTO LIBRARY === */
 /* FIX: ae_active added to synced keys so live session syncs across devices */
 function syncFromFirebase(cb){if(typeof db==="undefined"){if(cb)cb();return;}var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_settings","ae_site_locations","ae_pins","ae_active","ae_clocked"];var done=0;keys.forEach(function(k){db.collection("ae_data").doc(k).get().then(function(doc){if(doc.exists){try{localStorage.setItem(k,JSON.stringify(JSON.parse(doc.data().d)));}catch(e){}}done++;if(done===keys.length&&cb)cb();}).catch(function(){done++;if(done===keys.length&&cb)cb();});});}
