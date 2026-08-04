@@ -59,7 +59,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v27"/>
+<meta name="version" content="v28"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -459,10 +459,35 @@ function plTaxPack(fy){
     if(!w){toast("Popup blocked \u2014 allow popups to build the tax pack","error");return;}
     w.document.write('<!DOCTYPE html><html><head><title>Receipt Pack '+plFyLabel(fy)+' \u2014 Angel Earthworks and Civil</title><meta name="viewport" content="width=device-width,initial-scale=1"/><style>body{font-family:Arial,sans-serif;max-width:700px;margin:24px auto;padding:0 16px;color:#1a1a1a}.print-btn{position:fixed;top:16px;right:16px;background:#E8580A;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer}@media print{.print-btn{display:none}}</style></head><body><button class="print-btn" onclick="window.print()">Print / Save PDF</button><h2 style="margin-bottom:2px">Receipt Pack \u2014 '+plFyLabel(fy)+'</h2><div style="color:#888;font-size:13px;margin-bottom:6px">Angel Earthworks and Civil \u00b7 ABN '+esc(settings.abn||"12 173 760 280")+'</div><div style="background:#f4f4f4;border-radius:8px;padding:12px 16px;margin:14px 0;font-size:14px"><b>'+items.length+'</b> receipts \u00b7 Total <b>'+fmtCur(tot)+'</b> \u00b7 GST included <b>'+fmtCur(gstTot)+'</b></div>'+rows+missing+'<div style="color:#aaa;font-size:11px;margin-top:20px;text-align:center">Generated '+new Date().toLocaleDateString("en-AU")+' \u2014 Angel Earthworks and Civil app</div></body></html>');
     w.document.close();});}
+function plPreprocess(src){return new Promise(function(resolve){
+var img=new Image();var url=null;
+var fin=function(v){if(url)try{URL.revokeObjectURL(url);}catch(e){}resolve(v);};
+img.onload=function(){try{
+var w=img.width,h=img.height;var sc=Math.min(1,2200/Math.max(w,h));w=Math.round(w*sc);h=Math.round(h*sc);
+var c=document.createElement("canvas");c.width=w;c.height=h;var ctx=c.getContext("2d");
+try{ctx.filter="grayscale(1) blur(0.5px)";}catch(e){}
+ctx.drawImage(img,0,0,w,h);
+var id=ctx.getImageData(0,0,w,h);var px=id.data;var n=w*h;
+var gray=new Uint8Array(n);
+for(var i=0;i<n;i++){var j=i*4;gray[i]=(px[j]*0.299+px[j+1]*0.587+px[j+2]*0.114)|0;}
+var integ=new Uint32Array((w+1)*(h+1));
+for(var y=0;y<h;y++){var rowsum=0;for(var x=0;x<w;x++){rowsum+=gray[y*w+x];integ[(y+1)*(w+1)+(x+1)]=integ[y*(w+1)+(x+1)]+rowsum;}}
+var win=17,C=12;
+for(var y2i=0;y2i<h;y2i++){var ya=Math.max(0,y2i-win),yb=Math.min(h-1,y2i+win);
+for(var x2i=0;x2i<w;x2i++){var xa=Math.max(0,x2i-win),xb=Math.min(w-1,x2i+win);
+var cnt=(xb-xa+1)*(yb-ya+1);
+var sum=integ[(yb+1)*(w+1)+(xb+1)]-integ[ya*(w+1)+(xb+1)]-integ[(yb+1)*(w+1)+xa]+integ[ya*(w+1)+xa];
+var v=(gray[y2i*w+x2i]*cnt<=sum-C*cnt)?0:255;var j2=(y2i*w+x2i)*4;px[j2]=px[j2+1]=px[j2+2]=v;px[j2+3]=255;}}
+ctx.putImageData(id,0,0);
+fin(c.toDataURL("image/png"));
+}catch(err){fin(src);}};
+img.onerror=function(){fin(src);};
+if(src&&typeof src==="object"&&src.name!==undefined){url=URL.createObjectURL(src);img.src=url;}else{img.src=src;}
+});}
 function plLoadOcr(){return window.Tesseract?Promise.resolve():new Promise(function(res,rej){var sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js";sc.onload=function(){res();};sc.onerror=function(){rej(new Error("Couldn't load the text reader — check your internet"));};document.head.appendChild(sc);});}
 function plReadReceipt(){var list=window._plPendingList||[];if(!list.length){toast("Add the receipt photo first","error");return;}
 var btn=document.getElementById("pl-ocr-btn");if(btn){btn.textContent="Reading receipt... (first go can take ~20 sec)";btn.disabled=true;}
-plLoadOcr().then(function(){return Tesseract.recognize(list[0].file||list[0].full,"eng");}).then(function(res){
+plLoadOcr().then(function(){return plPreprocess(list[0].file||list[0].full);}).then(function(proc){return Tesseract.recognize(proc,"eng");}).then(function(res){
 var text=(res&&res.data&&res.data.text)||"";var conf=(res&&res.data&&res.data.confidence)||0;
 if(conf<40||text.replace(/[^A-Za-z0-9]/g,"").length<12){toast("That photo is too blurry to read — flatten the receipt, good light, straight above, and try again","error");}else{plApplyOcr(text);}
 if(btn){btn.textContent="🔍 Read amount & details from the receipt";btn.disabled=false;}
@@ -475,9 +500,16 @@ lines.forEach(function(l){var mm=l.match(/(\d{1,5}[.,]\d{2})\b/g);if(!mm)return;
 var amt=totalAmt!==null?totalAmt:(amts.length?Math.max.apply(null,amts):null);
 var ai=document.getElementById("pl-amount");
 if(amt&&ai&&!ai.value){ai.value=amt.toFixed(2);filled.push("amount");}
-var d=null;var m1=text.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
-if(m1){var dd=+m1[1],mo=+m1[2],yy=+m1[3];if(yy<100)yy+=2000;if(mo>=1&&mo<=12&&dd>=1&&dd<=31&&yy>2000&&yy<2100)d=yy+"-"+("0"+mo).slice(-2)+"-"+("0"+dd).slice(-2);}
-if(!d){var m2=text.match(/(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{4})/i);if(m2){var mos={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};var mn=mos[m2[2].slice(0,3).toLowerCase()];d=m2[3]+"-"+("0"+mn).slice(-2)+"-"+("0"+(+m2[1])).slice(-2);}}
+var dCands={};
+var pushD=function(dd,mo,yy){if(yy<100)yy+=2000;if(mo>=1&&mo<=12&&dd>=1&&dd<=31&&yy>=2020&&yy<=2035){var dt=new Date(yy,mo-1,dd);if(dt.getDate()===dd&&dt.getTime()<=Date.now()+86400000){var k=yy+"-"+("0"+mo).slice(-2)+"-"+("0"+dd).slice(-2);dCands[k]=(dCands[k]||0)+1;}}};
+var mm2;var mre=/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/g;
+while((mm2=mre.exec(text)))pushD(+mm2[1],+mm2[2],+mm2[3]);
+var ire=/(\d{4})-(\d{2})-(\d{2})/g;
+while((mm2=ire.exec(text)))pushD(+mm2[3],+mm2[2],+mm2[1]);
+var mosMap={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+var wre=/(\d{1,2})[,\.]?\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?,?\s+.?(\d{2,4})/gi;
+while((mm2=wre.exec(text)))pushD(+mm2[1],mosMap[mm2[2].slice(0,3).toLowerCase()],+mm2[3]);
+var d=null,dBest=0;Object.keys(dCands).forEach(function(k){if(dCands[k]>dBest||(dCands[k]===dBest&&k>(d||""))){d=k;dBest=dCands[k];}});
 if(d&&document.getElementById("pl-date")){document.getElementById("pl-date").value=d;filled.push("date");}
 var sup=null;var supStop=/^(are|the|and|for|you|our|your|this|that|with|from|tax invoice|invoice|receipt|abn|gst|eftpos|welcome|thanks?|thank you|customer|copy|store|shop)$/i;
 for(var i=0;i<Math.min(lines.length,6);i++){var l=lines[i].replace(/\s+/g," ").trim();if(/tax invoice|receipt|invoice|abn|gst|welcome|thank/i.test(l))continue;var letters=(l.match(/[A-Za-z]/g)||[]).length;var words=l.split(" ").filter(function(w){return (w.match(/[A-Za-z]/g)||[]).length>=2;});var hasRealWord=words.some(function(w){return w.length>=4;});if(letters>=5&&letters/l.length>0.5&&hasRealWord&&!supStop.test(l)&&!/^\d/.test(l)){sup=l.slice(0,40);break;}}
