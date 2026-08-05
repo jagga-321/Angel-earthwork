@@ -59,7 +59,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v28"/>
+<meta name="version" content="v29"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -402,10 +402,26 @@ function plViewPhoto(id){var p=photoLib.find(function(x){return x.id===id;});if(
       if(doc.exists){var val=JSON.parse(doc.data().d);try{localStorage.setItem("ae_photofull_"+p.id,JSON.stringify(val));}catch(e){}show(val,cap);}else show(null,cap);}).catch(function(){show(null,cap);});}
     else show(null,cap);}}
 function plDelete(id){var p=photoLib.find(function(x){return x.id===id;});if(!p)return;
-  if(!confirm(p.kind==="exp"?"Remove this receipt photo from the library? (The expense itself stays in Expenses.)":"Delete this photo?"))return;
-  if(p.kind==="exp"){var ph=getPhotos("expense",p.expId).filter(function(x){return x.id!==p.photoId;});savePhotos("expense",p.expId,ph);}
-  else{try{localStorage.removeItem("ae_photofull_"+p.id);}catch(e){}try{if(typeof db!=="undefined")db.collection("ae_data").doc("ae_photofull_"+p.id).delete().catch(function(){});}catch(e){}}
-  photoLib=photoLib.filter(function(x){return x.id!==id;});plSave();toast("Photo removed");render();}
+if(p.kind!=="exp"){if(!confirm("Delete this photo?"))return;
+try{localStorage.removeItem("ae_photofull_"+p.id);}catch(e){}try{if(typeof db!=="undefined")db.collection("ae_data").doc("ae_photofull_"+p.id).delete().catch(function(){});}catch(e){}
+photoLib=photoLib.filter(function(x){return x.id!==id;});plSave();toast("Photo removed");render();return;}
+var e=expenses.find(function(x){return x.id===p.expId;});
+var overlay=document.getElementById("overlay");overlay.classList.add("open");
+document.getElementById("modal-title").textContent="Delete Receipt";
+document.getElementById("modal-body").innerHTML='<div style="color:#C8C4BE;font-size:14px;line-height:1.6;margin-bottom:16px">This receipt photo is linked to an expense'+(e?(":<br/><b style=\"color:#F0EDE8\">"+esc(e.desc||e.category||"Expense")+" — "+fmtCur(e.amount)+"</b> ("+fmtDate(e.date)+")"):" (already deleted).")+'</div>'+
+'<div style="display:flex;flex-direction:column;gap:10px">'+
+(e?'<button class="btn-primary" style="background:#D93B3B" onclick="plDeleteBoth(\''+id+'\')">Delete photo AND expense</button>':'')+
+'<button class="btn-ghost" onclick="plDeletePhotoOnly(\''+id+'\')">Delete photo only — keep the '+(e?'expense':'entry')+'</button>'+
+'<button class="btn-ghost" onclick="closeModal()">Cancel</button></div>';}
+function plDeletePhotoOnly(id){var p=photoLib.find(function(x){return x.id===id;});if(!p)return;
+if(p.kind==="exp"){var ph=getPhotos("expense",p.expId).filter(function(x){return x.id!==p.photoId;});savePhotos("expense",p.expId,ph);}
+photoLib=photoLib.filter(function(x){return x.id!==id;});plSave();closeModal();toast("Photo removed — expense kept");render();}
+function plDeleteBoth(id){var p=photoLib.find(function(x){return x.id===id;});if(!p)return;
+var expId=p.expId;
+expenses=expenses.filter(function(x){return x.id!==expId;});
+deletePhotosForParent("expense",expId);
+photoLib=photoLib.filter(function(x){return x.id!==id;});
+plSave();saveAll();closeModal();toast("Receipt photo and expense both deleted");render();}
 function renderPhotosTab(){
   var f=window._plFilter||{cat:"All"};
   var entries=photoLib.slice().map(function(p){var d=plEntryDisplay(p);return{p:p,d:d};});
@@ -1125,7 +1141,7 @@ if(window._expEditId){var eid=window._expEditId;expenses=expenses.map(function(x
 else{expenses.unshift({id:window._expNewId||uid(),date:date,category:cat,desc:desc,amount:amt,gst:gst,litres:cat==="Diesel"?litres:0,client:client,createdAt:new Date().toISOString()});window._expNewId=null;toast("Expense saved — "+fmtCur(amt));}
 saveAll();closeModal();if(currentTab!=="expenses")switchTab("expenses");else render();
 }
-function deleteExpense(id){var e=expenses.find(function(x){return x.id===id;});if(!e||!confirm("Delete this expense?"))return;expenses=expenses.filter(function(x){return x.id!==id;});deletePhotosForParent("expense",id);saveAll();render();toast("Expense deleted");}
+function deleteExpense(id){var e=expenses.find(function(x){return x.id===id;});if(!e||!confirm("Delete this expense?"))return;expenses=expenses.filter(function(x){return x.id!==id;});deletePhotosForParent("expense",id);if(typeof photoLib!=="undefined"){var _pl0=photoLib.length;photoLib=photoLib.filter(function(p){return !(p.kind==="exp"&&p.expId===id);});if(photoLib.length!==_pl0)plSave();}saveAll();render();toast("Expense deleted");}
 /* === END EXPENSES === */
 /* === v23: SEARCH & FILTERS === */
 function sessMatchesFilter(s,f){if(!f)return true;if(f.q){var hay=((s.client||"")+" "+(s.site||"")+" "+(s.machine||"")+" "+(s.operator||"")+" "+(s.notes||"")+" "+(s.invoiceNo||"")).toLowerCase();if(hay.indexOf(f.q)<0)return false;}var d=s.startTime?String(s.startTime).slice(0,10):"";if(f.from&&d<f.from)return false;if(f.to&&d>f.to)return false;return true;}
