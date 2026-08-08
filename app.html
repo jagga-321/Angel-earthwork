@@ -59,7 +59,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v29"/>
+<meta name="version" content="v30"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -329,7 +329,7 @@ function openPhotoLibModal(editId){
   var p=editId?photoLib.find(function(x){return x.id===editId;}):null;
   if(editId&&!p)return;
   if(p&&p.kind==="exp"){openExpenseModal(p.expId);return;}
-  window._plEditId=p?p.id:null;window._plPendingList=null;
+  window._plEditId=p?p.id:null;window._plPendingList=null;window._plSupIdx=null;
   var overlay=document.getElementById("overlay");overlay.classList.add("open");
   document.getElementById("modal-title").textContent=p?"Edit Photo":"Add Photo";
   var iS=' style="background:#0D0D0D;border:1px solid #282828;border-radius:8px;color:#F0EDE8;padding:10px 12px;width:100%;font-family:inherit;font-size:14px"';
@@ -345,7 +345,7 @@ function openPhotoLibModal(editId){
     '<div class="field-row"><div class="field"><label>Amount ($)</label><input id="pl-amount" type="number" step="0.01" inputmode="decimal" placeholder="0.00"'+iS+'/></div>'+
     '<div class="field"><label>Expense category</label><select id="pl-expcat"'+iS+'>'+expCatOpts+'</select></div></div>'+
     '<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="pl-gst" checked style="width:16px;height:16px;accent-color:#22A05A"/><span style="font-size:12px;color:#C8C4BE">Price includes 10% GST</span></label></div></div>'+
-  '<div class="field"><label>Description / supplier</label><input id="pl-note" value="'+esc(p?(p.note||""):"")+'" placeholder="e.g. Diesel \u2014 Victor Harbor BP"'+iS+'/></div>'+
+  '<div class="field" style="position:relative"><label>Description / supplier</label><input id="pl-note" value="'+esc(p?(p.note||""):"")+'" placeholder="e.g. Diesel \u2014 Victor Harbor BP" autocomplete="off" oninput="plSupSuggest()" onfocus="plSupSuggest()" onblur="plSupHide()"'+iS+'/><div id="pl-sup-list" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:60;background:#141414;border:1px solid #333;border-radius:0 0 10px 10px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,.5)"></div></div>'+
   '<div class="field"><label>Client / Job (optional)</label>'+smartInput("pl-client","clients","Link to a client if job-specific",p?(p.client||""):"")+'</div>'+
   '<div style="display:flex;gap:10px;margin-top:12px"><button class="btn-primary" style="flex:1" onclick="savePhotoLibEntry()">'+(p?"Save Changes":"Save Photo")+'</button><button class="btn-ghost" onclick="closeModal()">Cancel</button></div>';
 }
@@ -530,7 +530,10 @@ if(d&&document.getElementById("pl-date")){document.getElementById("pl-date").val
 var sup=null;var supStop=/^(are|the|and|for|you|our|your|this|that|with|from|tax invoice|invoice|receipt|abn|gst|eftpos|welcome|thanks?|thank you|customer|copy|store|shop)$/i;
 for(var i=0;i<Math.min(lines.length,6);i++){var l=lines[i].replace(/\s+/g," ").trim();if(/tax invoice|receipt|invoice|abn|gst|welcome|thank/i.test(l))continue;var letters=(l.match(/[A-Za-z]/g)||[]).length;var words=l.split(" ").filter(function(w){return (w.match(/[A-Za-z]/g)||[]).length>=2;});var hasRealWord=words.some(function(w){return w.length>=4;});if(letters>=5&&letters/l.length>0.5&&hasRealWord&&!supStop.test(l)&&!/^\d/.test(l)){sup=l.slice(0,40);break;}}
 var ni=document.getElementById("pl-note");
-if(sup&&ni&&!ni.value){ni.value=sup;filled.push("supplier");}
+if(sup&&ni&&!ni.value){
+var known=(window._plSupIdx||(window._plSupIdx=plSupplierIndex())).find(function(x){var a=x.name.toLowerCase(),b=sup.toLowerCase();return a.indexOf(b)>-1||b.indexOf(a)>-1||a.split(" ")[0]===b.split(" ")[0];});
+if(known){ni.value=known.name;var cs=document.getElementById("pl-expcat");if(cs&&EXP_CATEGORIES[known.category])cs.value=known.category;var gc=document.getElementById("pl-gst");if(gc)gc.checked=known.gst;filled.push("supplier (matched "+known.name+")");}
+else{ni.value=sup;filled.push("supplier");}}
 var catSel=document.getElementById("pl-expcat");
 if(catSel){var t=text.toLowerCase();var guess=null;
 if(/diesel|fuel|unleaded|litre|\bbp\b|shell|caltex|ampol|mobil|petroleum/.test(t))guess="Diesel";
@@ -540,6 +543,40 @@ else if(/repair|hose|filter|parts|bearing|hydraulic|service/.test(t))guess="Repa
 else if(/tool|equipment/.test(t))guess="Tools & Equipment";
 if(guess){catSel.value=guess;filled.push("category");}}
 if(filled.length){toast("Auto-filled "+filled.join(", ")+" — double-check before saving");}else{toast("Couldn't read the details clearly — type them in","error");}}
+function plSupplierIndex(){
+var map={};
+var feed=function(name,cat,gst,date,amt){if(!name||!name.trim())return;var key=name.trim().toLowerCase();
+if(!map[key])map[key]={name:name.trim(),category:cat||"Other",gst:!!gst,count:0,last:"",lastAmt:null};
+var m=map[key];m.count++;
+if(date&&date>m.last){m.last=date;m.name=name.trim();m.category=cat||m.category;m.gst=!!gst;m.lastAmt=amt;}};
+expenses.forEach(function(e){feed(e.desc,e.category,(e.gst||0)>0,e.date||"",e.amount);});
+photoLib.forEach(function(p){if(p.kind==="lib"&&p.cat==="Receipt")feed(p.note,null,true,p.date||"",null);});
+return Object.keys(map).map(function(k){return map[k];}).sort(function(a,b){return b.count-a.count;});}
+function plSupSuggest(){
+var inp=document.getElementById("pl-note");var box=document.getElementById("pl-sup-list");
+if(!inp||!box)return;
+var q=inp.value.trim().toLowerCase();
+if(!q){box.style.display="none";box.innerHTML="";return;}
+var idx=window._plSupIdx||(window._plSupIdx=plSupplierIndex());
+var starts=[],contains=[];
+idx.forEach(function(sup){var n=sup.name.toLowerCase();if(n===q)return;
+if(n.indexOf(q)===0)starts.push(sup);else if(n.indexOf(q)>0)contains.push(sup);});
+var list=starts.concat(contains).slice(0,6);
+if(!list.length){box.style.display="none";box.innerHTML="";return;}
+window._plSupList=list;
+box.innerHTML=list.map(function(sup,i){
+return '<div onmousedown="plSupPick('+i+');event.preventDefault();" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #282828">'+
+'<div style="font-size:13px;color:#F0EDE8">'+esc(sup.name)+'</div>'+
+'<div style="font-size:10px;color:#6E6B64;margin-top:2px">'+esc(sup.category)+(sup.lastAmt?' · last '+fmtCur(sup.lastAmt):'')+(sup.count>1?' · used '+sup.count+'×':'')+'</div></div>';}).join("");
+box.style.display="block";}
+function plSupPick(i){
+var sup=(window._plSupList||[])[i];if(!sup)return;
+var inp=document.getElementById("pl-note");if(inp)inp.value=sup.name;
+var cat=document.getElementById("pl-expcat");if(cat&&EXP_CATEGORIES[sup.category])cat.value=sup.category;
+var gst=document.getElementById("pl-gst");if(gst)gst.checked=sup.gst;
+var box=document.getElementById("pl-sup-list");if(box){box.style.display="none";box.innerHTML="";}
+toast("Filled from previous "+sup.name+" receipts");}
+function plSupHide(){setTimeout(function(){var box=document.getElementById("pl-sup-list");if(box){box.style.display="none";}},250);}
 /* === END v24 PHOTO LIBRARY === */
 /* FIX: ae_active added to synced keys so live session syncs across devices */
 function syncFromFirebase(cb){if(typeof db==="undefined"){if(cb)cb();return;}var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_settings","ae_site_locations","ae_pins","ae_active","ae_clocked"];var done=0;keys.forEach(function(k){db.collection("ae_data").doc(k).get().then(function(doc){if(doc.exists){try{localStorage.setItem(k,JSON.stringify(JSON.parse(doc.data().d)));}catch(e){}}done++;if(done===keys.length&&cb)cb();}).catch(function(){done++;if(done===keys.length&&cb)cb();});});}
