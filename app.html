@@ -59,7 +59,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v31"/>
+<meta name="version" content="v32"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -423,11 +423,16 @@ expenses=expenses.filter(function(x){return x.id!==expId;});
 deletePhotosForParent("expense",expId);
 photoLib=photoLib.filter(function(x){return x.id!==id;});
 plSave();saveAll();closeModal();toast("Receipt photo and expense both deleted");render();}
+function plSearchQ(v){window._plFilter=window._plFilter||{cat:"All"};window._plFilter.q=v;var el=document.getElementById("pl-q");var pos=el?el.selectionStart:null;render();var el2=document.getElementById("pl-q");if(el2){el2.focus();if(pos!=null){try{el2.setSelectionRange(pos,pos);}catch(e){}}}}
 function renderPhotosTab(){
-  var f=window._plFilter||{cat:"All"};
+  var f=window._plFilter||{cat:"All"};if(!f.cat)f.cat="All";
   var entries=photoLib.slice().map(function(p){var d=plEntryDisplay(p);return{p:p,d:d};});
   entries.sort(function(a,b){return (b.d.date||"").localeCompare(a.d.date||"");});
-  var shown=entries.filter(function(x){return f.cat==="All"||x.d.cat===f.cat;});
+  var pq=(f.q||"").trim().toLowerCase();
+var shown=entries.filter(function(x){if(f.cat!=="All"&&x.d.cat!==f.cat)return false;
+if(!pq)return true;
+var hay=((x.d.label||"")+" "+(x.d.client||"")+" "+(x.d.cat||"")+" "+(x.d.expCat||"")+" "+(x.d.date||"")+" "+(x.d.amount!=null?x.d.amount.toFixed(2):"")).toLowerCase();
+return pq.split(/\s+/).every(function(w){return hay.indexOf(w)>-1;});});
   var nowFy=plFy(fmtIsoDate(new Date()));
   var fyRec=entries.filter(function(x){return x.d.cat==="Receipt"&&plFy(x.d.date)===nowFy&&x.d.amount;});
   var fyTot=fyRec.reduce(function(a,x){return a+x.d.amount;},0);
@@ -435,7 +440,7 @@ function renderPhotosTab(){
     '<div class="stat"><div class="stat-label">Photos saved</div><div class="stat-value" style="color:#E8580A">'+photoLib.length+'</div></div>'+
     '<div class="stat"><div class="stat-label">Receipts \u00b7 '+plFyLabel(nowFy)+'</div><div class="stat-value" style="color:#22A05A">'+fyRec.length+'</div><div style="font-size:11px;color:#6E6B64;margin-top:5px">'+fmtCur(fyTot)+' tracked</div></div></div>';
   var chips=["All"].concat(Object.keys(PL_CATS)).map(function(c){
-    return'<button onclick="window._plFilter={cat:\''+c+'\'};render()" style="background:'+(f.cat===c?"#E8580A":"none")+';border:1px solid '+(f.cat===c?"#E8580A":"#282828")+';color:'+(f.cat===c?"#fff":"#6E6B64")+';border-radius:20px;padding:7px 14px;font-size:12px;font-family:inherit;cursor:pointer">'+c+'</button>';}).join("");
+    return'<button onclick="window._plFilter=Object.assign(window._plFilter||{},{cat:\''+c+'\'});render()" style="background:'+(f.cat===c?"#E8580A":"none")+';border:1px solid '+(f.cat===c?"#E8580A":"#282828")+';color:'+(f.cat===c?"#fff":"#6E6B64")+';border-radius:20px;padding:7px 14px;font-size:12px;font-family:inherit;cursor:pointer">'+c+'</button>';}).join("");
   var body="";var curFy=null;var curMonth=null;
   if(!shown.length){body='<div style="color:#6E6B64;font-size:13px;font-style:italic;padding:30px 0;text-align:center">No photos yet \u2014 tap \u201c+ Add Photo\u201d to save your first receipt or job photo.</div>';}
   shown.forEach(function(x){
@@ -455,7 +460,7 @@ function renderPhotosTab(){
   if(curFy!==null)body+='</div>';
   return'<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><h2 style="margin:0">Photos</h2><button class="btn-primary" onclick="openPhotoLibModal()">+ Add Photo</button></div>'+
     '<div style="font-size:12px;color:#6E6B64;margin-top:6px">Receipts are backed up here and can be tracked as expenses. Everything is grouped by financial year for tax time.</div>'+
-    stats+'<div style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0">'+chips+'</div>'+body+'</div>';}
+    stats+'<input id="pl-q" value="'+esc(f.q||"")+'" placeholder="\uD83D\uDD0D Search photos \u2014 supplier, job, amount, month..." oninput="plSearchQ(this.value)" autocomplete="off" style="background:#0D0D0D;border:1px solid #282828;border-radius:10px;color:#F0EDE8;padding:11px 14px;width:100%;font-family:inherit;font-size:14px;margin-top:14px"/>'+'<div style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0">'+chips+'</div>'+((f.q||"").trim()?'<div style="font-size:11px;color:#6E6B64;margin-bottom:8px">'+shown.length+' match'+(shown.length!==1?"es":"")+' for \u201c'+esc(f.q.trim())+'\u201d</div>':'')+body+'</div>';}
 function plTaxPack(fy){
   var recs=photoLib.map(function(p){return{p:p,d:plEntryDisplay(p)};}).filter(function(x){return x.d.cat==="Receipt"&&plFy(x.d.date)===fy;});
   if(!recs.length){toast("No receipts saved for "+plFyLabel(fy),"error");return;}
@@ -1175,9 +1180,14 @@ function saveMachineHours(data){save("ae_mhours",data);}
 
 /* === EXPENSES (v23): purchases for BAS 1B + fuel tax credits === */
 var EXP_CATEGORIES={"Diesel":"#E8580A","Tip Fees":"#2878CC","Materials":"#F5C518","Repairs & Maintenance":"#D93B3B","Insurance":"#22A05A","Rego & Licences":"#8E6BC8","Subcontractors":"#1FA3A3","Tools & Equipment":"#E8A317","Other":"#6E6B64"};
+function expSearchQ(v){window._expFilter=window._expFilter||{};window._expFilter.q=v;var el=document.getElementById("exp-q");var pos=el?el.selectionStart:null;render();var el2=document.getElementById("exp-q");if(el2){el2.focus();if(pos!=null){try{el2.setSelectionRange(pos,pos);}catch(e){}}}}
 function renderExpenses(){
 var f=window._expFilter||{};
-var list=expenses.slice().filter(function(e){return !f.cat||f.cat==="All"||e.category===f.cat;});
+var eq=(f.q||"").trim().toLowerCase();
+var list=expenses.slice().filter(function(e){if(f.cat&&f.cat!=="All"&&e.category!==f.cat)return false;
+if(!eq)return true;
+var hay=((e.desc||"")+" "+(e.client||"")+" "+(e.category||"")+" "+(e.date||"")+" "+(e.amount!=null?Number(e.amount).toFixed(2):"")).toLowerCase();
+return eq.split(/\s+/).every(function(w){return hay.indexOf(w)>-1;});});
 list.sort(function(a,b){return (b.date||"").localeCompare(a.date||"");});
 var now=new Date();var fyStart=new Date(now.getMonth()>=6?now.getFullYear():now.getFullYear()-1,6,1);
 var q=currentFyQ();var qr=gstRange(q.fy,q.q);
@@ -1189,7 +1199,8 @@ var fyGst=fyExp.reduce(function(a,e){return a+(e.gst||0);},0);
 var fyL=fyExp.reduce(function(a,e){return a+(e.category==="Diesel"?(e.litres||0):0);},0);
 var stats='<div class="stats-row"><div class="stat"><div class="stat-label">This Quarter</div><div class="stat-value" style="color:#E8580A">'+fmtCur(qTot)+'</div><div style="font-size:11px;color:#6E6B64;margin-top:5px">'+qExp.length+' expense'+(qExp.length!==1?"s":"")+'</div></div><div class="stat"><div class="stat-label">This FY</div><div class="stat-value" style="color:#F5C518">'+fmtCur(fyTot)+'</div><div style="font-size:11px;color:#6E6B64;margin-top:5px">'+fyExp.length+' expense'+(fyExp.length!==1?"s":"")+'</div></div><div class="stat"><div class="stat-label">FY GST (1B)</div><div class="stat-value" style="color:#22A05A">'+fmtCur(fyGst)+'</div><div style="font-size:11px;color:#6E6B64;margin-top:5px">claimable on BAS</div></div><div class="stat"><div class="stat-label">FY Diesel</div><div class="stat-value" style="color:#2878CC">'+(Math.round(fyL*10)/10)+' L</div><div style="font-size:11px;color:#6E6B64;margin-top:5px">for fuel tax credits</div></div></div>';
 var cats=["All"].concat(Object.keys(EXP_CATEGORIES));
-var chips='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">'+cats.map(function(c){var on=(f.cat||"All")===c;return'<button class="btn btn-sm '+(on?"btn-primary":"btn-ghost")+'" onclick="expFilterCat(\''+c+'\')">'+c+'</button>';}).join("")+'</div>';
+var expSearch='<input id="exp-q" value="'+esc(f.q||"")+'" placeholder="\uD83D\uDD0D Search expenses \u2014 supplier, job, amount..." oninput="expSearchQ(this.value)" autocomplete="off" style="background:#0D0D0D;border:1px solid #282828;border-radius:10px;color:#F0EDE8;padding:11px 14px;width:100%;font-family:inherit;font-size:14px;margin-bottom:10px"/>'+(eq?'<div style="font-size:11px;color:#6E6B64;margin-bottom:8px">'+list.length+' match'+(list.length!==1?"es":"")+'</div>':'');
+var chips=expSearch+'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">'+cats.map(function(c){var on=(f.cat||"All")===c;return'<button class="btn btn-sm '+(on?"btn-primary":"btn-ghost")+'" onclick="expFilterCat(\''+c+'\')">'+c+'</button>';}).join("")+'</div>';
 var lastMonth=null;var rows="";
 list.forEach(function(e){
 var mk=e.date?e.date.slice(0,7):"";
