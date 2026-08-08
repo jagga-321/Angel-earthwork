@@ -59,7 +59,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v32"/>
+<meta name="version" content="v33"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -299,7 +299,7 @@ function gv(id){var el=document.getElementById(id);return el?el.value:"";}
 function gvt(id){var el=document.getElementById(id);return el?(el.value||"").trim():"";}
 function localISO(dateStr,timeStr){var d=new Date(dateStr+"T"+(timeStr||"00:00")+":00");var off=-d.getTimezoneOffset();var sign=off>=0?"+":"-";var hh=String(Math.floor(Math.abs(off)/60)).padStart(2,"0");var mm=String(Math.abs(off)%60).padStart(2,"0");return dateStr+"T"+(timeStr||"00:00")+":00.000"+sign+hh+":"+mm;}
 function load(k,def){try{var v=localStorage.getItem(k);return v!==null?JSON.parse(v):def;}catch(e){return def;}}
-function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}try{if(typeof db!=="undefined"){db.collection("ae_data").doc(k).set({d:JSON.stringify(v),t:Date.now()}).catch(function(){});}}catch(e){}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}try{if(typeof db!=="undefined"){db.collection("ae_data").doc(k).set({d:JSON.stringify(v),t:Date.now()}).catch(function(){if(!window._cloudWarned){window._cloudWarned=true;toast("Cloud save didn't go through — check internet before closing the app","error");}});}}catch(e){}}
 /* === PHOTO ATTACHMENT HELPERS === */
 function photoKey(parentType,parentId){return"ae_photos_"+parentType+"_"+parentId;}
 function getPhotos(parentType,parentId){return load(photoKey(parentType,parentId),[]);}
@@ -405,7 +405,7 @@ function plViewPhoto(id){var p=photoLib.find(function(x){return x.id===id;});if(
 function plDelete(id){var p=photoLib.find(function(x){return x.id===id;});if(!p)return;
 if(p.kind!=="exp"){if(!confirm("Delete this photo?"))return;
 try{localStorage.removeItem("ae_photofull_"+p.id);}catch(e){}try{if(typeof db!=="undefined")db.collection("ae_data").doc("ae_photofull_"+p.id).delete().catch(function(){});}catch(e){}
-photoLib=photoLib.filter(function(x){return x.id!==id;});plSave();toast("Photo removed");render();return;}
+addTomb(id);photoLib=photoLib.filter(function(x){return x.id!==id;});plSave();toast("Photo removed");render();return;}
 var e=expenses.find(function(x){return x.id===p.expId;});
 var overlay=document.getElementById("overlay");overlay.classList.add("open");
 document.getElementById("modal-title").textContent="Delete Receipt";
@@ -416,9 +416,9 @@ document.getElementById("modal-body").innerHTML='<div style="color:#C8C4BE;font-
 '<button class="btn-ghost" onclick="closeModal()">Cancel</button></div>';}
 function plDeletePhotoOnly(id){var p=photoLib.find(function(x){return x.id===id;});if(!p)return;
 if(p.kind==="exp"){var ph=getPhotos("expense",p.expId).filter(function(x){return x.id!==p.photoId;});savePhotos("expense",p.expId,ph);}
-photoLib=photoLib.filter(function(x){return x.id!==id;});plSave();closeModal();toast("Photo removed — expense kept");render();}
+addTomb(id);photoLib=photoLib.filter(function(x){return x.id!==id;});plSave();closeModal();toast("Photo removed — expense kept");render();}
 function plDeleteBoth(id){var p=photoLib.find(function(x){return x.id===id;});if(!p)return;
-var expId=p.expId;
+var expId=p.expId;addTomb(id);addTomb(expId);
 expenses=expenses.filter(function(x){return x.id!==expId;});
 deletePhotosForParent("expense",expId);
 photoLib=photoLib.filter(function(x){return x.id!==id;});
@@ -458,7 +458,7 @@ return pq.split(/\s+/).every(function(w){return hay.indexOf(w)>-1;});});
       '<span><a style="font-size:10px;color:#2878CC;cursor:pointer" onclick="openPhotoLibModal(\''+x.p.id+'\')">edit</a> <a style="font-size:10px;color:#D93B3B;cursor:pointer" onclick="plDelete(\''+x.p.id+'\')">del</a></span></div>'+
       '</div></div>';});
   if(curFy!==null)body+='</div>';
-  return'<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><h2 style="margin:0">Photos</h2><button class="btn-primary" onclick="openPhotoLibModal()">+ Add Photo</button></div>'+
+  return'<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><h2 style="margin:0">Photos</h2><button class="btn-ghost" style="font-size:11px" onclick="plCloudSweep()">☁ Check cloud</button> <button class="btn-primary" onclick="openPhotoLibModal()">+ Add Photo</button></div>'+
     '<div style="font-size:12px;color:#6E6B64;margin-top:6px">Receipts are backed up here and can be tracked as expenses. Everything is grouped by financial year for tax time.</div>'+
     stats+'<input id="pl-q" value="'+esc(f.q||"")+'" placeholder="\uD83D\uDD0D Search photos \u2014 supplier, job, amount, month..." oninput="plSearchQ(this.value)" autocomplete="off" style="background:#0D0D0D;border:1px solid #282828;border-radius:10px;color:#F0EDE8;padding:11px 14px;width:100%;font-family:inherit;font-size:14px;margin-top:14px"/>'+'<div style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0">'+chips+'</div>'+((f.q||"").trim()?'<div style="font-size:11px;color:#6E6B64;margin-bottom:8px">'+shown.length+' match'+(shown.length!==1?"es":"")+' for \u201c'+esc(f.q.trim())+'\u201d</div>':'')+body+'</div>';}
 function plTaxPack(fy){
@@ -631,10 +631,46 @@ pics=pics.slice(0,6);
 if(!pics.length)return"";
 return '<div style="margin-top:24px;page-break-inside:avoid"><div style="font-size:11px;color:#E8580A;font-weight:700;letter-spacing:1.5px;margin-bottom:8px">JOB PHOTOS</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+pics.map(function(d2){return '<img src="'+d2+'" style="width:31%;min-width:150px;border-radius:6px;object-fit:cover;max-height:220px"/>';}).join("")+'</div></div>';
 }catch(e){return"";}}
+/* === v33: SYNC SAFETY — merge lists on sync so newer local entries are never clobbered === */
+function tombs(){return load("ae_tombs",[]);}
+function addTomb(id){var t=tombs();if(t.indexOf(id)===-1){t.push(id);if(t.length>400)t=t.slice(-400);save("ae_tombs",t);}}
+function mergeById(localArr,cloudArr){
+try{
+var t=tombs();var seen={};var out=[];
+(cloudArr||[]).forEach(function(x){if(x&&x.id&&t.indexOf(x.id)===-1){seen[x.id]=1;out.push(x);}});
+(localArr||[]).forEach(function(x){if(x&&x.id&&!seen[x.id]&&t.indexOf(x.id)===-1){out.push(x);}});
+return out;
+}catch(e){return cloudArr||localArr||[];}}
+function mergeTombs(localT,cloudT){var m={};(localT||[]).concat(cloudT||[]).forEach(function(id){m[id]=1;});var out=Object.keys(m);if(out.length>400)out=out.slice(-400);return out;}
+function plCloudSweep(){
+if(typeof db==="undefined"){toast("Cloud not available","error");return;}
+toast("Checking cloud for lost receipts...");
+db.collection("ae_data").get().then(function(snap){
+var expIds=expenses.map(function(e){return e.id;});
+var found=0;var t=tombs();
+snap.forEach(function(doc){
+var id=doc.id;if(id.indexOf("ae_photos_expense_")!==0)return;
+var eid=id.replace("ae_photos_expense_","");
+if(expIds.indexOf(eid)>-1||t.indexOf(eid)>-1)return;
+var arr;try{arr=JSON.parse(doc.data().d);}catch(e){return;}
+if(!arr||!arr.length||!arr[0]||!arr[0].data)return;
+found++;
+try{localStorage.setItem(id,JSON.stringify(arr));}catch(e){}
+var ph=arr[0];var dstr=(ph.addedAt||"").slice(0,10)||fmtIsoDate(new Date());
+expenses.unshift({id:eid,date:dstr,category:"Other",desc:(ph.caption||"Recovered receipt")+" (recovered — check amount)",amount:0,gst:0,litres:0,client:"",createdAt:ph.addedAt||new Date().toISOString()});
+photoLib.unshift({id:uid(),kind:"exp",expId:eid,photoId:ph.id,thumb:ph.data,date:dstr,cat:"Receipt",addedAt:ph.addedAt||new Date().toISOString()});
+});
+if(found){saveAll();plSave();render();toast(found+" lost receipt"+(found>1?"s":"")+" recovered from cloud — amounts need checking","error");}
+else toast("No lost receipts — everything matches the cloud \u2713");
+}).catch(function(e){toast("Cloud check failed: "+(e.message||"error"),"error");});}
+/* === END v33 SYNC SAFETY === */
 /* === END v24 PHOTO LIBRARY === */
 /* FIX: ae_active added to synced keys so live session syncs across devices */
-function syncFromFirebase(cb){if(typeof db==="undefined"){if(cb)cb();return;}var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_settings","ae_site_locations","ae_pins","ae_active","ae_clocked"];var done=0;keys.forEach(function(k){db.collection("ae_data").doc(k).get().then(function(doc){if(doc.exists){try{localStorage.setItem(k,JSON.stringify(JSON.parse(doc.data().d)));}catch(e){}}done++;if(done===keys.length&&cb)cb();}).catch(function(){done++;if(done===keys.length&&cb)cb();});});}
-function startFirebaseListeners(){if(typeof db==="undefined")return;["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_settings","ae_pins","ae_active","ae_clocked"].forEach(function(k){db.collection("ae_data").doc(k).onSnapshot(function(doc){if(!doc.exists)return;try{var val=JSON.parse(doc.data().d);try{localStorage.setItem(k,JSON.stringify(val));}catch(e){}if(k==="ae_sessions"){sessions=val;sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});}if(k==="ae_crew")crew=val;if(k==="ae_invoices")invoices=val;if(k==="ae_quotes")quotes=val;if(k==="ae_payruns")payRuns=val;if(k==="ae_bookings")bookings=val;if(k==="ae_availability")availability=val;if(k==="ae_compliance")compliance=val;if(k==="ae_expenses")expenses=val;if(k==="ae_photolib")photoLib=val;if(k==="ae_settings")settings=Object.assign({},DS,val);if(k==="ae_pins")crewMembers=val;if(k==="ae_active"){activeSession=val;updateBanner();}if(k==="ae_clocked"){if(currentUser&&currentUser.role==="crew"){var _all=(val&&val.memberId)?(function(){var o={};o[val.memberId]=val;return o;})():(val||{});crewClocked=_all[currentUser.id]||null;if(crewClocked){showCrewBanner();startCrewTimer();}else{hideCrewBanner();stopCrewTimer();}}}var modalOpen=document.getElementById("overlay")&&document.getElementById("overlay").classList.contains("open");if(currentUser&&currentUser.role==="manager"&&!modalOpen){try{render();}catch(e){}}if(currentUser&&currentUser.role==="crew"&&!modalOpen){try{crewDrawTab();}catch(e){}}}catch(e){}},function(){});});}
+function syncFromFirebase(cb){if(typeof db==="undefined"){if(cb)cb();return;}var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_settings","ae_site_locations","ae_pins","ae_active","ae_clocked"];var done=0;keys.forEach(function(k){db.collection("ae_data").doc(k).get().then(function(doc){if(doc.exists){try{var val=JSON.parse(doc.data().d);
+if(k==="ae_expenses"||k==="ae_photolib"){var loc=load(k,[]);val=mergeById(loc,val);}
+if(k==="ae_tombs"){val=mergeTombs(load(k,[]),val);}
+localStorage.setItem(k,JSON.stringify(val));}catch(e){}}done++;if(done===keys.length&&cb)cb();}).catch(function(){done++;if(done===keys.length&&cb)cb();});});}
+function startFirebaseListeners(){if(typeof db==="undefined")return;["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_settings","ae_pins","ae_active","ae_clocked"].forEach(function(k){db.collection("ae_data").doc(k).onSnapshot(function(doc){if(!doc.exists)return;try{var val=JSON.parse(doc.data().d);try{localStorage.setItem(k,JSON.stringify(val));}catch(e){}if(k==="ae_sessions"){sessions=val;sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});}if(k==="ae_crew")crew=val;if(k==="ae_invoices")invoices=val;if(k==="ae_quotes")quotes=val;if(k==="ae_payruns")payRuns=val;if(k==="ae_bookings")bookings=val;if(k==="ae_availability")availability=val;if(k==="ae_compliance")compliance=val;if(k==="ae_expenses"){expenses=mergeById(expenses,val);try{localStorage.setItem("ae_expenses",JSON.stringify(expenses));}catch(e){}}if(k==="ae_photolib"){photoLib=mergeById(photoLib,val);try{localStorage.setItem("ae_photolib",JSON.stringify(photoLib));}catch(e){}}if(k==="ae_tombs"){try{localStorage.setItem("ae_tombs",JSON.stringify(mergeTombs(load("ae_tombs",[]),val)));}catch(e){}}if(k==="ae_settings")settings=Object.assign({},DS,val);if(k==="ae_pins")crewMembers=val;if(k==="ae_active"){activeSession=val;updateBanner();}if(k==="ae_clocked"){if(currentUser&&currentUser.role==="crew"){var _all=(val&&val.memberId)?(function(){var o={};o[val.memberId]=val;return o;})():(val||{});crewClocked=_all[currentUser.id]||null;if(crewClocked){showCrewBanner();startCrewTimer();}else{hideCrewBanner();stopCrewTimer();}}}var modalOpen=document.getElementById("overlay")&&document.getElementById("overlay").classList.contains("open");if(currentUser&&currentUser.role==="manager"&&!modalOpen){try{render();}catch(e){}}if(currentUser&&currentUser.role==="crew"&&!modalOpen){try{crewDrawTab();}catch(e){}}}catch(e){}},function(){});});}
 
 var sessions=load("ae_sessions",[]);
 sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});
@@ -1238,7 +1274,7 @@ if(window._expEditId){var eid=window._expEditId;expenses=expenses.map(function(x
 else{expenses.unshift({id:window._expNewId||uid(),date:date,category:cat,desc:desc,amount:amt,gst:gst,litres:cat==="Diesel"?litres:0,client:client,createdAt:new Date().toISOString()});window._expNewId=null;toast("Expense saved — "+fmtCur(amt));}
 saveAll();closeModal();if(currentTab!=="expenses")switchTab("expenses");else render();
 }
-function deleteExpense(id){var e=expenses.find(function(x){return x.id===id;});if(!e||!confirm("Delete this expense?"))return;expenses=expenses.filter(function(x){return x.id!==id;});deletePhotosForParent("expense",id);if(typeof photoLib!=="undefined"){var _pl0=photoLib.length;photoLib=photoLib.filter(function(p){return !(p.kind==="exp"&&p.expId===id);});if(photoLib.length!==_pl0)plSave();}saveAll();render();toast("Expense deleted");}
+function deleteExpense(id){var e=expenses.find(function(x){return x.id===id;});if(!e||!confirm("Delete this expense?"))return;addTomb(id);expenses=expenses.filter(function(x){return x.id!==id;});deletePhotosForParent("expense",id);if(typeof photoLib!=="undefined"){var _pl0=photoLib.length;photoLib=photoLib.filter(function(p){if(p.kind==="exp"&&p.expId===id){addTomb(p.id);return false;}return true;});if(photoLib.length!==_pl0)plSave();}saveAll();render();toast("Expense deleted");}
 /* === END EXPENSES === */
 /* === v23: SEARCH & FILTERS === */
 function sessMatchesFilter(s,f){if(!f)return true;if(f.q){var hay=((s.client||"")+" "+(s.site||"")+" "+(s.machine||"")+" "+(s.operator||"")+" "+(s.notes||"")+" "+(s.invoiceNo||"")).toLowerCase();if(hay.indexOf(f.q)<0)return false;}var d=s.startTime?String(s.startTime).slice(0,10):"";if(f.from&&d<f.from)return false;if(f.to&&d>f.to)return false;return true;}
