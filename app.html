@@ -59,7 +59,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v35"/>
+<meta name="version" content="v36"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -669,10 +669,10 @@ else toast("No lost receipts — everything matches the cloud \u2713");
 /* === END v33 SYNC SAFETY === */
 /* === END v24 PHOTO LIBRARY === */
 /* FIX: ae_active added to synced keys so live session syncs across devices */
-function syncFromFirebase(cb){if(typeof db==="undefined"){if(cb)cb();return;}var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_settings","ae_site_locations","ae_pins","ae_active","ae_clocked"];var done=0;keys.forEach(function(k){db.collection("ae_data").doc(k).get({source:"server"}).catch(function(){return db.collection("ae_data").doc(k).get();}).then(function(doc){if(doc.exists){try{var val=JSON.parse(doc.data().d);
+function syncFromFirebase(cb){if(typeof db==="undefined"){if(cb)cb();return;}var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_settings","ae_site_locations","ae_pins","ae_active","ae_clocked"];var done=0;keys.forEach(function(k){db.collection("ae_data").doc(k).get({source:"server"}).then(function(doc){if(k==="ae_expenses")window._syncSrc="live";return doc;}).catch(function(){return db.collection("ae_data").doc(k).get().then(function(doc){if(k==="ae_expenses")window._syncSrc=(doc.metadata&&doc.metadata.fromCache)?"cache":"live";return doc;});}).then(function(doc){if(doc.exists){try{var val=JSON.parse(doc.data().d);
 if(k==="ae_expenses"||k==="ae_photolib"){var loc=load(k,[]);val=mergeById(loc,val);}
 if(k==="ae_tombs"){val=mergeTombs(load(k,[]),val);}
-localStorage.setItem(k,JSON.stringify(val));}catch(e){}}done++;if(done===keys.length&&cb)cb();}).catch(function(){done++;if(done===keys.length&&cb)cb();});});}
+localStorage.setItem(k,JSON.stringify(val));}catch(e){}}done++;if(done===keys.length&&cb)cb();}).catch(function(){if(k==="ae_expenses")window._syncSrc="error";done++;if(done===keys.length&&cb)cb();});});}
 function startFirebaseListeners(){if(typeof db==="undefined")return;["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_settings","ae_pins","ae_active","ae_clocked"].forEach(function(k){db.collection("ae_data").doc(k).onSnapshot(function(doc){if(!doc.exists)return;try{var val=JSON.parse(doc.data().d);try{localStorage.setItem(k,JSON.stringify(val));}catch(e){}if(k==="ae_sessions"){sessions=val;sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});}if(k==="ae_crew")crew=val;if(k==="ae_invoices")invoices=val;if(k==="ae_quotes")quotes=val;if(k==="ae_payruns")payRuns=val;if(k==="ae_bookings")bookings=val;if(k==="ae_availability")availability=val;if(k==="ae_compliance")compliance=val;if(k==="ae_expenses"){expenses=mergeById(expenses,val);try{localStorage.setItem("ae_expenses",JSON.stringify(expenses));}catch(e){}}if(k==="ae_photolib"){photoLib=mergeById(photoLib,val);try{localStorage.setItem("ae_photolib",JSON.stringify(photoLib));}catch(e){}}if(k==="ae_tombs"){try{localStorage.setItem("ae_tombs",JSON.stringify(mergeTombs(load("ae_tombs",[]),val)));}catch(e){}}if(k==="ae_settings")settings=Object.assign({},DS,val);if(k==="ae_pins")crewMembers=val;if(k==="ae_active"){activeSession=val;updateBanner();}if(k==="ae_clocked"){if(currentUser&&currentUser.role==="crew"){var _all=(val&&val.memberId)?(function(){var o={};o[val.memberId]=val;return o;})():(val||{});crewClocked=_all[currentUser.id]||null;if(crewClocked){showCrewBanner();startCrewTimer();}else{hideCrewBanner();stopCrewTimer();}}}var modalOpen=document.getElementById("overlay")&&document.getElementById("overlay").classList.contains("open");if(currentUser&&currentUser.role==="manager"&&!modalOpen){try{render();}catch(e){}}if(currentUser&&currentUser.role==="crew"&&!modalOpen){try{crewDrawTab();}catch(e){}}}catch(e){}},function(){});});}
 
 var sessions=load("ae_sessions",[]);
@@ -1316,15 +1316,31 @@ if(!settings.managerPin)settings.managerPin=load("ae_mgr","0000");
 activeSession=load("ae_active",null);
 try{autoUpdateStatuses();}catch(e){}
 try{updateSyncStatus(true);}catch(e){}
+try{if(window._syncSrc==="live"){window._syncRetry=0;}else if(window._syncSrc&&(window._syncRetry||0)<3){window._syncRetry=(window._syncRetry||0)+1;setTimeout(function(){syncFromFirebase(function(){reloadGlobals();try{render();}catch(e){}});},5000);}}catch(e){}
 }
 window._lastResync=0;
 function updateSyncStatus(ok){try{
 var el=document.getElementById("sync-status");
-if(!el){el=document.createElement("div");el.id="sync-status";el.style.cssText="position:fixed;bottom:4px;left:8px;font-size:9px;color:#55524C;z-index:40;font-family:monospace;pointer-events:none;letter-spacing:.5px";document.body.appendChild(el);}
+if(!el){el=document.createElement("div");el.id="sync-status";el.style.cssText="position:fixed;bottom:4px;left:8px;font-size:9px;color:#55524C;z-index:40;font-family:monospace;pointer-events:auto;cursor:pointer;letter-spacing:.5px;padding:2px 6px 2px 0";el.onclick=function(){try{syncDebug();}catch(e){}};document.body.appendChild(el);}
 var v=(document.querySelector('meta[name=version]')||{}).content||"?";
 var t=new Date().toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"});
-el.textContent=v+" \u00b7 "+expenses.length+" exp \u00b7 "+photoLib.length+" photos \u00b7 cloud "+(ok===false?"OFFLINE":t);
+var src=window._syncSrc;
+var cl=(ok===false)?"OFFLINE \u26a0":(src==="cache"?"CACHED \u26a0 "+t:(src==="error"?"NO CLOUD \u2716 "+t:t));
+el.textContent=v+" \u00b7 "+expenses.length+" exp \u00b7 "+photoLib.length+" photos \u00b7 cloud "+cl;
 }catch(e){}}
+function syncDebug(){try{
+var d=document.getElementById("sync-debug");if(d){d.remove();return;}
+d=document.createElement("div");d.id="sync-debug";
+d.style.cssText="position:fixed;bottom:22px;left:8px;max-width:340px;background:#1E1C19;border:1px solid #55524C;border-radius:8px;padding:12px;z-index:9999;font-family:monospace;font-size:11px;color:#D8D5CF;line-height:1.7;box-shadow:0 4px 20px rgba(0,0,0,.5)";
+var src=window._syncSrc||"not checked yet";
+d.innerHTML="<b>Sync check</b><br>Version: "+((document.querySelector("meta[name=version]")||{}).content||"?")+
+"<br>This device: "+expenses.length+" expenses, "+photoLib.length+" photos"+
+"<br>Last cloud read: <b>"+(src==="live"?"LIVE from server \u2713":(src==="cache"?"CACHED old copy \u26a0":(src==="error"?"FAILED \u2716":src)))+"</b>"+
+"<br>Internet: "+(navigator.onLine?"online":"OFFLINE")+
+"<div style=\"margin-top:8px;display:flex;gap:8px\"><button onclick=\"forceLiveSync()\" style=\"flex:1;padding:8px;background:#E8842C;border:0;border-radius:6px;color:#fff;font-weight:bold\">Force live sync</button><button onclick=\"document.getElementById('sync-debug').remove()\" style=\"padding:8px 12px;background:#333;border:0;border-radius:6px;color:#ccc\">Close</button></div>";
+document.body.appendChild(d);
+}catch(e){}}
+function forceLiveSync(){var d=document.getElementById("sync-debug");if(d)d.remove();try{toast("Pulling live data from cloud...");}catch(e){}window._syncRetry=0;syncFromFirebase(function(){reloadGlobals();try{render();}catch(e){}try{toast(window._syncSrc==="live"?"Got LIVE cloud data \u2713":"Could not reach cloud \u2014 showing "+(window._syncSrc==="cache"?"an old cached copy":"local data only"),window._syncSrc==="live"?undefined:"error");}catch(e){}});}
 
 document.addEventListener("visibilitychange",function(){
 if(document.hidden)return;
