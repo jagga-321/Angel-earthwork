@@ -59,7 +59,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v34"/>
+<meta name="version" content="v35"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -299,7 +299,7 @@ function gv(id){var el=document.getElementById(id);return el?el.value:"";}
 function gvt(id){var el=document.getElementById(id);return el?(el.value||"").trim():"";}
 function localISO(dateStr,timeStr){var d=new Date(dateStr+"T"+(timeStr||"00:00")+":00");var off=-d.getTimezoneOffset();var sign=off>=0?"+":"-";var hh=String(Math.floor(Math.abs(off)/60)).padStart(2,"0");var mm=String(Math.abs(off)%60).padStart(2,"0");return dateStr+"T"+(timeStr||"00:00")+":00.000"+sign+hh+":"+mm;}
 function load(k,def){try{var v=localStorage.getItem(k);return v!==null?JSON.parse(v):def;}catch(e){return def;}}
-function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}try{if(typeof db!=="undefined"){db.collection("ae_data").doc(k).set({d:JSON.stringify(v),t:Date.now()}).catch(function(){if(!window._cloudWarned){window._cloudWarned=true;toast("Cloud save didn't go through — check internet before closing the app","error");}});}}catch(e){}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}try{if(typeof db!=="undefined"){db.collection("ae_data").doc(k).set({d:JSON.stringify(v),t:Date.now()}).catch(function(){try{updateSyncStatus(false);}catch(e){}if(!window._cloudWarned){window._cloudWarned=true;toast("Cloud save didn’t go through — check internet before closing the app","error");}});}}catch(e){}}
 /* === PHOTO ATTACHMENT HELPERS === */
 function photoKey(parentType,parentId){return"ae_photos_"+parentType+"_"+parentId;}
 function getPhotos(parentType,parentId){return load(photoKey(parentType,parentId),[]);}
@@ -1315,8 +1315,17 @@ if(!settings.rates)settings.rates=Object.assign({},DR);
 if(!settings.managerPin)settings.managerPin=load("ae_mgr","0000");
 activeSession=load("ae_active",null);
 try{autoUpdateStatuses();}catch(e){}
+try{updateSyncStatus(true);}catch(e){}
 }
 window._lastResync=0;
+function updateSyncStatus(ok){try{
+var el=document.getElementById("sync-status");
+if(!el){el=document.createElement("div");el.id="sync-status";el.style.cssText="position:fixed;bottom:4px;left:8px;font-size:9px;color:#55524C;z-index:40;font-family:monospace;pointer-events:none;letter-spacing:.5px";document.body.appendChild(el);}
+var v=(document.querySelector('meta[name=version]')||{}).content||"?";
+var t=new Date().toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"});
+el.textContent=v+" \u00b7 "+expenses.length+" exp \u00b7 "+photoLib.length+" photos \u00b7 cloud "+(ok===false?"OFFLINE":t);
+}catch(e){}}
+
 document.addEventListener("visibilitychange",function(){
 if(document.hidden)return;
 var now=Date.now();
