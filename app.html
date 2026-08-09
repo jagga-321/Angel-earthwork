@@ -59,7 +59,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v33"/>
+<meta name="version" content="v34"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -644,7 +644,9 @@ return out;
 function mergeTombs(localT,cloudT){var m={};(localT||[]).concat(cloudT||[]).forEach(function(id){m[id]=1;});var out=Object.keys(m);if(out.length>400)out=out.slice(-400);return out;}
 function plCloudSweep(){
 if(typeof db==="undefined"){toast("Cloud not available","error");return;}
-toast("Checking cloud for lost receipts...");
+toast("Refreshing everything from the cloud...");
+syncFromFirebase(function(){reloadGlobals();render();
+toast("Refreshed from cloud — now checking for lost receipts...");
 db.collection("ae_data").get().then(function(snap){
 var expIds=expenses.map(function(e){return e.id;});
 var found=0;var t=tombs();
@@ -662,11 +664,12 @@ photoLib.unshift({id:uid(),kind:"exp",expId:eid,photoId:ph.id,thumb:ph.data,date
 });
 if(found){saveAll();plSave();render();toast(found+" lost receipt"+(found>1?"s":"")+" recovered from cloud — amounts need checking","error");}
 else toast("No lost receipts — everything matches the cloud \u2713");
-}).catch(function(e){toast("Cloud check failed: "+(e.message||"error"),"error");});}
+}).catch(function(e){toast("Cloud check failed: "+(e.message||"error"),"error");});
+});}
 /* === END v33 SYNC SAFETY === */
 /* === END v24 PHOTO LIBRARY === */
 /* FIX: ae_active added to synced keys so live session syncs across devices */
-function syncFromFirebase(cb){if(typeof db==="undefined"){if(cb)cb();return;}var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_settings","ae_site_locations","ae_pins","ae_active","ae_clocked"];var done=0;keys.forEach(function(k){db.collection("ae_data").doc(k).get().then(function(doc){if(doc.exists){try{var val=JSON.parse(doc.data().d);
+function syncFromFirebase(cb){if(typeof db==="undefined"){if(cb)cb();return;}var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_settings","ae_site_locations","ae_pins","ae_active","ae_clocked"];var done=0;keys.forEach(function(k){db.collection("ae_data").doc(k).get({source:"server"}).catch(function(){return db.collection("ae_data").doc(k).get();}).then(function(doc){if(doc.exists){try{var val=JSON.parse(doc.data().d);
 if(k==="ae_expenses"||k==="ae_photolib"){var loc=load(k,[]);val=mergeById(loc,val);}
 if(k==="ae_tombs"){val=mergeTombs(load(k,[]),val);}
 localStorage.setItem(k,JSON.stringify(val));}catch(e){}}done++;if(done===keys.length&&cb)cb();}).catch(function(){done++;if(done===keys.length&&cb)cb();});});}
@@ -1292,6 +1295,35 @@ function agedReceivablesHtml(){var buckets={cur:0,d30:0,d60:0,d90:0};var owing=[
 function emailInvoice(id){var inv=invoices.find(function(i){return i.id===id;});if(!inv)return;var biz=settings.businessName||"Angel Earthworks and Civil";var bal=getInvoiceBalance(inv);var firstName=inv.client?String(inv.client).split(/[\s,]+/)[0]:"";var subject=((inv.gst||0)>0?"Tax Invoice ":"Invoice ")+inv.invoiceNo+" — "+biz;var lines=[];lines.push("Hi"+(firstName?" "+firstName:"")+",");lines.push("");lines.push("Please find invoice "+inv.invoiceNo+" below. A formatted PDF has also been opened in your browser — save it and attach it to this email if needed.");lines.push("");lines.push("INVOICE SUMMARY");lines.push("================================");lines.push("Invoice No: "+inv.invoiceNo);lines.push("Date:       "+fmtDate(inv.date));lines.push("Due:        "+fmtDate(inv.dueDate));lines.push("Bill To:    "+inv.client);lines.push("");lines.push("ITEMS");lines.push("================================");(inv.items||[]).forEach(function(item,i){if(item.isCustom||!item.machine){lines.push((i+1)+". "+(item.desc||""));lines.push("   "+item.qty+" "+(item.unit||"item")+" @ $"+Number(item.rate||0).toFixed(2)+" = "+fmtCur(item.total));}else{lines.push((i+1)+". "+item.machine+" — "+item.hireType+" ("+fmtDate(item.startTime)+")");lines.push("   "+((item.hireType==="Day Rate (Machine Only)"||item.hireType==="Custom Day Rate")?"Day rate (flat)":fmtHrs(item.duration)+" @ $"+item.rate+"/hr")+" = "+fmtCur(item.total));}});lines.push("");lines.push("--------------------------------");if((inv.gst||0)>0){lines.push("Subtotal (ex GST): "+fmtCur(inv.subtotal));lines.push("GST (10%):         "+fmtCur(inv.gst));}lines.push("TOTAL:             "+fmtCur(inv.totalGST));var paid=getInvoicePaid(inv);if(paid>0){lines.push("Paid:              -"+fmtCur(paid));lines.push("BALANCE DUE:       "+fmtCur(bal));}lines.push("");lines.push("PAYMENT");lines.push("================================");if(settings.payId)lines.push("PayID: "+settings.payId);if(settings.bank)lines.push("Bank: "+settings.bank);if(settings.bsb)lines.push("BSB: "+settings.bsb+(settings.accountNo?"  Acc: "+settings.accountNo:""));lines.push("Reference: "+inv.invoiceNo);if(settings.payLink)lines.push("Pay online: "+settings.payLink);lines.push("");lines.push("Happy with the job? A quick Google review helps our small local business heaps:");lines.push("https://g.page/r/CVhVovC2Gc-tEAI/review");lines.push("");lines.push("Kind regards,");lines.push(biz);if(settings.abn)lines.push("ABN: "+settings.abn);if(settings.phone)lines.push(settings.phone);if(settings.email)lines.push(settings.email);var body=lines.join("\n");try{generateInvoicePDF(id);}catch(e){}var mailto="mailto:?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);if(mailto.length>1900){if(navigator.clipboard){navigator.clipboard.writeText(body).then(function(){toast("Invoice text copied — paste into email");});}setTimeout(function(){window.location.href="mailto:?subject="+encodeURIComponent(subject);},400);}else{setTimeout(function(){window.location.href=mailto;},400);toast("PDF opened — save it, then attach to the email");}}
 /* === v23: BOOKING -> SESSION HAND-OFF === */
 function bookingToSession(id){var b=bookings.find(function(x){return x.id===id;});if(!b)return;closeModal();openModal("session");var c=document.getElementById("sf-client");if(c)c.value=b.client||"";var s=document.getElementById("sf-site");if(s)s.value=b.site||"";if(b.resource&&MACHINES.indexOf(b.resource)>=0){var m=document.getElementById("sf-machine");if(m)m.value=b.resource;}var n=document.getElementById("sf-notes");if(n)n.value=b.notes||"";sfUpdateRate();if(typeof initLocationFromSite==="function")initLocationFromSite("sf");toast("Pre-filled from booking — tap Start Timer when ready");}
+/* v34: reusable global reload (FIXES missing photoLib refresh after sync) + auto resync on return */
+function reloadGlobals(){
+sessions=load("ae_sessions",[]);
+sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});
+crew=load("ae_crew",[]);
+invoices=load("ae_invoices",[]);
+quotes=load("ae_quotes",[]);
+payRuns=load("ae_payruns",[]);
+bookings=load("ae_bookings",[]);
+availability=load("ae_availability",{});
+compliance=load("ae_compliance",[]);
+expenses=load("ae_expenses",[]);
+photoLib=load("ae_photolib",[]);
+crewMembers=load("ae_pins",[{id:"w1",name:"Crew Member",pin:"1234",role:"Operator"}]);
+var savedSettings=load("ae_settings",{});
+settings=Object.assign({},DS,savedSettings);
+if(!settings.rates)settings.rates=Object.assign({},DR);
+if(!settings.managerPin)settings.managerPin=load("ae_mgr","0000");
+activeSession=load("ae_active",null);
+try{autoUpdateStatuses();}catch(e){}
+}
+window._lastResync=0;
+document.addEventListener("visibilitychange",function(){
+if(document.hidden)return;
+var now=Date.now();
+if(now-window._lastResync<20000)return;
+window._lastResync=now;
+try{syncFromFirebase(function(){reloadGlobals();try{if(currentUser)render();}catch(e){}});}catch(e){}
+});
 /* v31: extra dashboard cards */
 var _origRenderDashboard=renderDashboard;
 renderDashboard=function(){return _origRenderDashboard()+receiptNudge()+basCard()+jobProfitCard()+serviceCard();};
@@ -1303,25 +1335,7 @@ drawDots();
 if(forceInitialPinSetup()){document.getElementById("pin-msg").textContent="Reload the app and set a manager PIN to continue";}
 try{
 ensureFirebaseAuth(function(){
-syncFromFirebase(function(){
-sessions=load("ae_sessions",[]);
-sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});
-crew=load("ae_crew",[]);
-invoices=load("ae_invoices",[]);
-quotes=load("ae_quotes",[]);
-payRuns=load("ae_payruns",[]);
-bookings=load("ae_bookings",[]);
-availability=load("ae_availability",{});
-compliance=load("ae_compliance",[]);
-expenses=load("ae_expenses",[]);
-crewMembers=load("ae_pins",[{id:"w1",name:"Crew Member",pin:"1234",role:"Operator"}]);
-var savedSettings=load("ae_settings",{});
-settings=Object.assign({},DS,savedSettings);
-if(!settings.rates)settings.rates=Object.assign({},DR);
-if(!settings.managerPin)settings.managerPin=load("ae_mgr","0000");
-activeSession=load("ae_active",null);
-autoUpdateStatuses();
-});
+syncFromFirebase(function(){reloadGlobals();});
 });
 }catch(e){console.log("Sync error:",e);}
 /* v23: register service worker for offline use (no-op when opened as a plain file) */
