@@ -59,7 +59,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v39"/>
+<meta name="version" content="v40"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -684,7 +684,7 @@ else toast("No lost receipts — everything matches the cloud \u2713");
 /* === END v24 PHOTO LIBRARY === */
 /* FIX: ae_active added to synced keys so live session syncs across devices */
 function syncFromFirebase(cb){if(typeof db==="undefined"){if(cb)cb();return;}var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_settings","ae_site_locations","ae_service","ae_mhours","ae_history","ae_pins","ae_active","ae_clocked"];var done=0;keys.forEach(function(k){db.collection("ae_data").doc(k).get({source:"server"}).then(function(doc){if(k==="ae_expenses")window._syncSrc="live";return doc;}).catch(function(){return db.collection("ae_data").doc(k).get().then(function(doc){if(k==="ae_expenses")window._syncSrc=(doc.metadata&&doc.metadata.fromCache)?"cache":"live";return doc;});}).then(function(doc){if(doc.exists){try{var val=JSON.parse(doc.data().d);
-if(k==="ae_expenses"||k==="ae_photolib"||k==="ae_sessions"||k==="ae_invoices"||k==="ae_quotes"||k==="ae_bookings"||k==="ae_payruns"||k==="ae_compliance"||k==="ae_crew"){var loc=load(k,[]);val=mergeById(loc,val);}
+if(k==="ae_expenses"||k==="ae_photolib"||k==="ae_sessions"||k==="ae_invoices"||k==="ae_quotes"||k==="ae_bookings"||k==="ae_payruns"||k==="ae_compliance"||k==="ae_crew"){var loc=load(k,[]);var cloudLen=(val||[]).length;val=mergeById(loc,val);if(val.length>cloudLen){window._needPush=window._needPush||{};window._needPush[k]=1;}}
 if(k==="ae_tombs"){val=mergeTombs(load(k,[]),val);}
 localStorage.setItem(k,JSON.stringify(val));}catch(e){}}done++;if(done===keys.length&&cb)cb();}).catch(function(){if(k==="ae_expenses")window._syncSrc="error";done++;if(done===keys.length&&cb)cb();});});}
 function startFirebaseListeners(){if(typeof db==="undefined")return;if(window._fbListening)return;window._fbListening=true;["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_settings","ae_site_locations","ae_service","ae_mhours","ae_history","ae_pins","ae_active","ae_clocked"].forEach(function(k){db.collection("ae_data").doc(k).onSnapshot(function(doc){if(!doc.exists)return;try{var val=JSON.parse(doc.data().d);try{localStorage.setItem(k,JSON.stringify(val));}catch(e){}if(k==="ae_sessions"){sessions=mergeById(sessions,val);sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});try{localStorage.setItem("ae_sessions",JSON.stringify(sessions));}catch(e){}}if(k==="ae_crew"){crew=mergeById(crew,val);try{localStorage.setItem("ae_crew",JSON.stringify(crew));}catch(e){}}if(k==="ae_invoices"){invoices=mergeById(invoices,val);try{localStorage.setItem("ae_invoices",JSON.stringify(invoices));}catch(e){}}if(k==="ae_quotes"){quotes=mergeById(quotes,val);try{localStorage.setItem("ae_quotes",JSON.stringify(quotes));}catch(e){}}if(k==="ae_payruns"){payRuns=mergeById(payRuns,val);try{localStorage.setItem("ae_payruns",JSON.stringify(payRuns));}catch(e){}}if(k==="ae_bookings"){bookings=mergeById(bookings,val);try{localStorage.setItem("ae_bookings",JSON.stringify(bookings));}catch(e){}}if(k==="ae_availability")availability=val;if(k==="ae_compliance"){compliance=mergeById(compliance,val);try{localStorage.setItem("ae_compliance",JSON.stringify(compliance));}catch(e){}}if(k==="ae_expenses"){expenses=mergeById(expenses,val);try{localStorage.setItem("ae_expenses",JSON.stringify(expenses));}catch(e){}}if(k==="ae_photolib"){photoLib=mergeById(photoLib,val);try{localStorage.setItem("ae_photolib",JSON.stringify(photoLib));}catch(e){}}if(k==="ae_tombs"){try{localStorage.setItem("ae_tombs",JSON.stringify(mergeTombs(load("ae_tombs",[]),val)));}catch(e){}}if(k==="ae_settings")settings=Object.assign({},DS,val);if(k==="ae_pins")crewMembers=val;if(k==="ae_active"){activeSession=val;updateBanner();}if(k==="ae_clocked"){if(currentUser&&currentUser.role==="crew"){var _all=(val&&val.memberId)?(function(){var o={};o[val.memberId]=val;return o;})():(val||{});crewClocked=_all[currentUser.id]||null;if(crewClocked){showCrewBanner();startCrewTimer();}else{hideCrewBanner();stopCrewTimer();}}}var modalOpen=document.getElementById("overlay")&&document.getElementById("overlay").classList.contains("open");if(currentUser&&currentUser.role==="manager"&&!modalOpen){try{render();}catch(e){}}if(currentUser&&currentUser.role==="crew"&&!modalOpen){try{crewDrawTab();}catch(e){}}}catch(e){}},function(){});});}
@@ -1345,6 +1345,7 @@ if(!settings.rates)settings.rates=Object.assign({},DR);
 if(!settings.managerPin)settings.managerPin=load("ae_mgr","0000");
 activeSession=load("ae_active",null);
 try{autoUpdateStatuses();}catch(e){}
+try{pushMergedBack();}catch(e){}
 try{updateSyncStatus(true);}catch(e){}
 try{if(window._syncSrc==="live"){window._syncRetry=0;}else if(window._syncSrc&&(window._syncRetry||0)<3){window._syncRetry=(window._syncRetry||0)+1;setTimeout(function(){syncFromFirebase(function(){reloadGlobals();try{render();}catch(e){}});},5000);}}catch(e){}
 }
@@ -1354,6 +1355,13 @@ if(typeof db==="undefined")return;
 var keys=Object.keys(window._pendingCloud||{});window._pendingCloud={};
 keys.forEach(function(k){var raw=localStorage.getItem(k);if(raw===null)return;
 try{db.collection("ae_data").doc(k).set({d:raw,t:Date.now()}).catch(function(){try{updateSyncStatus(false);}catch(e){}});}catch(e){}});
+}catch(e){}}
+function pushMergedBack(){try{
+if(typeof db==="undefined")return;
+var keys=Object.keys(window._needPush||{});if(!keys.length)return;window._needPush={};
+keys.forEach(function(k){var raw=localStorage.getItem(k);if(raw===null)return;
+try{db.collection("ae_data").doc(k).set({d:raw,t:Date.now()});}catch(e){}});
+try{toast("Restored records this device had that the cloud was missing");}catch(e){}
 }catch(e){}}
 function markBootSynced(){if(window._bootSynced)return;window._bootSynced=true;try{flushPendingCloud();}catch(e){}}
 setTimeout(function(){try{markBootSynced();}catch(e){}},15000);
