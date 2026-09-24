@@ -19,6 +19,17 @@ var firebaseConfig={apiKey:"AIzaSyCJbPGhjFt246Wkrd4O63OWpG2dSMXMc5Y",authDomain:
 try{firebase.initializeApp(firebaseConfig);var db=firebase.firestore();}catch(e){console.log("Firebase init:",e);}
 /* v23: offline persistence — Firestore keeps a local copy and syncs when coverage returns */
 try{db.enablePersistence({synchronizeTabs:true}).catch(function(){});}catch(e){}
+/* v50: SPLIT BIG CLOUD DOCS — Firestore caps one doc at 1 MB. ae_photolib hit that limit, so pushes failed and the
+   "restored records" sync prompt kept flashing. Big lists are now saved as a main doc + __partN docs in one batch. */
+var CLOUD_CHUNK=300000;
+function cloudSet(k,raw){var ref=db.collection("ae_data");var t=Date.now();
+if(raw.length<=CLOUD_CHUNK)return ref.doc(k).set({d:raw,t:t});
+var parts=[],i=0;while(i<raw.length){var e=Math.min(i+CLOUD_CHUNK,raw.length);var c=raw.charCodeAt(e-1);if(e<raw.length&&c>=0xD800&&c<=0xDBFF)e--;parts.push(raw.slice(i,e));i=e;}
+var b=db.batch();parts.forEach(function(pt,n){b.set(ref.doc(k+"__part"+n),{d:pt,t:t});});
+b.set(ref.doc(k),{d:"[]",parts:parts.length,t:t});return b.commit();}
+function cloudRaw(doc){var data=doc&&doc.exists?doc.data():null;if(!data)return Promise.resolve(null);if(!data.parts)return Promise.resolve(data.d);
+var ref=db.collection("ae_data");var ps=[];for(var i=0;i<data.parts;i++)ps.push(ref.doc(doc.id+"__part"+i).get());
+return Promise.all(ps).then(function(ds){var out="";for(var j=0;j<ds.length;j++){if(!ds[j].exists||ds[j].data().t!==data.t)throw new Error("parts not ready");out+=ds[j].data().d;}return out;});}
 var firebaseAuthReady=false;var firebaseAuthFailed=false;
 function ensureFirebaseAuth(cb){
 if(firebaseAuthReady){if(cb)cb();return;}
@@ -60,7 +71,7 @@ document.getElementById("fb-pw").addEventListener("keydown",function(e){if(e.key
 }
 </script>
 <title>Angel Earthworks and Civil</title>
-<meta name="version" content="v49"/>
+<meta name="version" content="v50"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:#0D0D0D;color:#F0EDE8;font-family:'Courier New',monospace;min-height:100vh;font-size:14px}
@@ -313,7 +324,7 @@ return true;
 function lsSet(k,str){var pruned=false;for(var t=0;t<80;t++){try{localStorage.setItem(k,str);window._lsFull=false;if(pruned&&!window._lsPruneToast){window._lsPruneToast=true;try{toast("Storage was full \u2014 cleared old photo cache to make room. Photos stay safe in the cloud.");}catch(e2){}}return true;}catch(e){if(!lsPrune(k)){pruned=pruned||false;break;}pruned=true;}}window._lsFull=true;if(!window._lsWarned){window._lsWarned=true;try{toast("This device\u2019s local storage is FULL \u2014 data still saves to the cloud, but this device may show old info. Tell Claude.","error");}catch(e2){}}return false;}
 function lsBootTrim(){try{var total=0,i,kk;for(i=0;i<localStorage.length;i++){kk=localStorage.key(i);total+=(localStorage.getItem(kk)||"").length+(kk||"").length;}var guard=0;while(total>3500000&&guard<300){if(!lsPrune(null))break;guard++;var t2=0;for(i=0;i<localStorage.length;i++){kk=localStorage.key(i);t2+=(localStorage.getItem(kk)||"").length+(kk||"").length;}if(t2>=total)break;total=t2;}}catch(e){}}
 try{lsBootTrim();}catch(e){}
-function save(k,v){var _js=JSON.stringify(v);var _ok=lsSet(k,_js);window._lsFailedKeys=window._lsFailedKeys||{};if(_ok)delete window._lsFailedKeys[k];else window._lsFailedKeys[k]=1;try{if(typeof db!=="undefined"&&!window._bootSynced){window._pendingCloud=window._pendingCloud||{};window._pendingCloud[k]=1;window._pendingCloudData=window._pendingCloudData||{};window._pendingCloudData[k]=_js;return;}}catch(e){}try{if(typeof db!=="undefined"){db.collection("ae_data").doc(k).set({d:JSON.stringify(v),t:Date.now()}).catch(function(){try{updateSyncStatus(false);}catch(e){}if(!window._cloudWarned){window._cloudWarned=true;toast("Cloud save didn’t go through — check internet before closing the app","error");}});}}catch(e){}}
+function save(k,v){var _js=JSON.stringify(v);var _ok=lsSet(k,_js);window._lsFailedKeys=window._lsFailedKeys||{};if(_ok)delete window._lsFailedKeys[k];else window._lsFailedKeys[k]=1;try{if(typeof db!=="undefined"&&!window._bootSynced){window._pendingCloud=window._pendingCloud||{};window._pendingCloud[k]=1;window._pendingCloudData=window._pendingCloudData||{};window._pendingCloudData[k]=_js;return;}}catch(e){}try{if(typeof db!=="undefined"){cloudSet(k,_js).catch(function(){try{updateSyncStatus(false);}catch(e){}if(!window._cloudWarned){window._cloudWarned=true;toast("Cloud save didn’t go through — check internet before closing the app","error");}});}}catch(e){}}
 /* === PHOTO ATTACHMENT HELPERS === */
 function photoKey(parentType,parentId){return"ae_photos_"+parentType+"_"+parentId;}
 function getPhotos(parentType,parentId){return load(photoKey(parentType,parentId),[]);}
@@ -672,7 +683,7 @@ if(localWon)out._localWon=true;
 return out;
 }catch(e){var a=localArr||[],b=cloudArr||[];return (a.length>=b.length?a:b);}}
 /* FIX v43: shared merge helper — flags push-back when local records win (adds OR newer edits) */
-function mergeCloud(k,localVal,cloudVal){var cl=(cloudVal||[]).length;var m=mergeById(localVal,cloudVal);if(m.length>cl||m._localWon){window._needPush=window._needPush||{};window._needPush[k]=1;if(window._bootSynced){setTimeout(function(){try{pushMergedBack();}catch(e){}},80);}}return m;}
+function mergeCloud(k,localVal,cloudVal){var cl=(cloudVal||[]).length;var m=mergeById(localVal,cloudVal);if(m.length>cl||m._localWon){window._needPush=window._needPush||{};window._needPush[k]=1;window._mergedRaw=window._mergedRaw||{};try{window._mergedRaw[k]=JSON.stringify(m);}catch(e){}if(window._bootSynced){setTimeout(function(){try{pushMergedBack();}catch(e){}},80);}}return m;}
 function mergeTombs(localT,cloudT){var m={};(localT||[]).concat(cloudT||[]).forEach(function(id){m[id]=1;});var out=Object.keys(m);if(out.length>2000)out=out.slice(-2000);return out;}
 function plCloudSweep(){
 if(typeof db==="undefined"){toast("Cloud not available","error");return;}
@@ -701,12 +712,14 @@ else toast("No lost receipts — everything matches the cloud \u2713");
 /* === END v33 SYNC SAFETY === */
 /* === END v24 PHOTO LIBRARY === */
 /* FIX: ae_active added to synced keys so live session syncs across devices */
-function syncFromFirebase(cb){if(typeof db==="undefined"){if(cb)cb();return;}var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_settings","ae_site_locations","ae_service","ae_mhours","ae_history","ae_pins","ae_active","ae_clocked"];var done=0;keys.forEach(function(k){db.collection("ae_data").doc(k).get({source:"server"}).then(function(doc){if(k==="ae_expenses")window._syncSrc="live";return doc;}).catch(function(){return db.collection("ae_data").doc(k).get().then(function(doc){if(k==="ae_expenses")window._syncSrc=(doc.metadata&&doc.metadata.fromCache)?"cache":"live";return doc;});}).then(function(doc){if(doc.exists){try{var val=JSON.parse(doc.data().d);
+function syncFromFirebase(cb){if(typeof db==="undefined"){if(cb)cb();return;}var keys=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_settings","ae_site_locations","ae_service","ae_mhours","ae_history","ae_pins","ae_active","ae_clocked"];var done=0;keys.forEach(function(k){db.collection("ae_data").doc(k).get({source:"server"}).then(function(doc){if(k==="ae_expenses")window._syncSrc="live";return doc;}).catch(function(){return db.collection("ae_data").doc(k).get().then(function(doc){if(k==="ae_expenses")window._syncSrc=(doc.metadata&&doc.metadata.fromCache)?"cache":"live";return doc;});}).then(function(doc){return cloudRaw(doc).catch(function(){return null;});}).then(function(raw){if(raw!=null){try{var val=JSON.parse(raw);
 if(k==="ae_expenses"||k==="ae_photolib"||k==="ae_sessions"||k==="ae_invoices"||k==="ae_quotes"||k==="ae_bookings"||k==="ae_payruns"||k==="ae_compliance"||k==="ae_crew"||k==="ae_mhours"){var loc=load(k,[]);val=mergeCloud(k,loc,val);}
 if(k==="ae_tombs"){val=mergeTombs(load(k,[]),val);}
 if(k==="ae_clocked"&&val&&typeof val==="object"&&!val.memberId){var _lc=load("ae_clocked",{})||{};if(_lc&&typeof _lc==="object"&&!_lc.memberId){Object.keys(_lc).forEach(function(mid){if(_lc[mid]&&!val[mid])val[mid]=_lc[mid];});}}
 lsSet(k,JSON.stringify(val));}catch(e){}}done++;if(done===keys.length){window._bootSyncedReal=true;if(cb)cb();}}).catch(function(){if(k==="ae_expenses")window._syncSrc="error";done++;if(done===keys.length){window._bootSyncedReal=true;if(cb)cb();}});});}
-function startFirebaseListeners(){if(typeof db==="undefined")return;if(window._fbListening)return;window._fbListening=true;["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_settings","ae_site_locations","ae_service","ae_mhours","ae_history","ae_pins","ae_active","ae_clocked"].forEach(function(k){db.collection("ae_data").doc(k).onSnapshot(function(doc){if(!doc.exists)return;try{var val=JSON.parse(doc.data().d);var _MK=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_mhours"];if(_MK.indexOf(k)===-1){try{lsSet(k,JSON.stringify(val));}catch(e){}}if(k==="ae_mhours"){try{lsSet("ae_mhours",JSON.stringify(mergeCloud("ae_mhours",load("ae_mhours",[]),val)));}catch(e){}}if(k==="ae_sessions"){sessions=mergeCloud("ae_sessions",sessions,val);sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});try{lsSet("ae_sessions",JSON.stringify(sessions));}catch(e){}}if(k==="ae_crew"){crew=mergeCloud("ae_crew",crew,val);try{lsSet("ae_crew",JSON.stringify(crew));}catch(e){}}if(k==="ae_invoices"){invoices=mergeCloud("ae_invoices",invoices,val);try{lsSet("ae_invoices",JSON.stringify(invoices));}catch(e){}}if(k==="ae_quotes"){quotes=mergeCloud("ae_quotes",quotes,val);try{lsSet("ae_quotes",JSON.stringify(quotes));}catch(e){}}if(k==="ae_payruns"){payRuns=mergeCloud("ae_payruns",payRuns,val);try{lsSet("ae_payruns",JSON.stringify(payRuns));}catch(e){}}if(k==="ae_bookings"){bookings=mergeCloud("ae_bookings",bookings,val);try{lsSet("ae_bookings",JSON.stringify(bookings));}catch(e){}}if(k==="ae_availability")availability=val;if(k==="ae_compliance"){compliance=mergeCloud("ae_compliance",compliance,val);try{lsSet("ae_compliance",JSON.stringify(compliance));}catch(e){}}if(k==="ae_expenses"){expenses=mergeCloud("ae_expenses",expenses,val);try{lsSet("ae_expenses",JSON.stringify(expenses));}catch(e){}}if(k==="ae_photolib"){photoLib=mergeCloud("ae_photolib",photoLib,val);try{lsSet("ae_photolib",JSON.stringify(photoLib));}catch(e){}}if(k==="ae_tombs"){try{lsSet("ae_tombs",JSON.stringify(mergeTombs(load("ae_tombs",[]),val)));}catch(e){}}if(k==="ae_settings"){settings=Object.assign({},DS,val);settings.rates=Object.assign({},DR,settings.rates||{});}if(k==="ae_pins")crewMembers=val;if(k==="ae_active"){activeSession=val;updateBanner();}if(k==="ae_clocked"){if(currentUser&&currentUser.role==="crew"){var _all=(val&&val.memberId)?(function(){var o={};o[val.memberId]=val;return o;})():(val||{});crewClocked=_all[currentUser.id]||null;if(crewClocked){showCrewBanner();startCrewTimer();}else{hideCrewBanner();stopCrewTimer();}}}var modalOpen=document.getElementById("overlay")&&document.getElementById("overlay").classList.contains("open");if(currentUser&&currentUser.role==="manager"&&!modalOpen){try{render();}catch(e){}}if(currentUser&&currentUser.role==="crew"&&!modalOpen){try{crewDrawTab();}catch(e){}}}catch(e){}},function(){});});}
+function startFirebaseListeners(){if(typeof db==="undefined")return;if(window._fbListening)return;window._fbListening=true;["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_availability","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_settings","ae_site_locations","ae_service","ae_mhours","ae_history","ae_pins","ae_active","ae_clocked"].forEach(function(k){db.collection("ae_data").doc(k).onSnapshot(function(doc){if(!doc.exists)return;cloudRaw(doc).then(function(raw){if(raw==null)return;try{var val=JSON.parse(raw);var _MK=["ae_sessions","ae_crew","ae_invoices","ae_quotes","ae_payruns","ae_bookings","ae_compliance","ae_expenses","ae_photolib","ae_tombs","ae_mhours"];if(_MK.indexOf(k)===-1){try{lsSet(k,JSON.stringify(val));}catch(e){}}if(k==="ae_mhours"){try{lsSet("ae_mhours",JSON.stringify(mergeCloud("ae_mhours",load("ae_mhours",[]),val)));}catch(e){}}if(k==="ae_sessions"){sessions=mergeCloud("ae_sessions",sessions,val);sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});try{lsSet("ae_sessions",JSON.stringify(sessions));}catch(e){}}if(k==="ae_crew"){crew=mergeCloud("ae_crew",crew,val);try{lsSet("ae_crew",JSON.stringify(crew));}catch(e){}}if(k==="ae_invoices"){invoices=mergeCloud("ae_invoices",invoices,val);try{lsSet("ae_invoices",JSON.stringify(invoices));}catch(e){}}if(k==="ae_quotes"){quotes=mergeCloud("ae_quotes",quotes,val);try{lsSet("ae_quotes",JSON.stringify(quotes));}catch(e){}}if(k==="ae_payruns"){payRuns=mergeCloud("ae_payruns",payRuns,val);try{lsSet("ae_payruns",JSON.stringify(payRuns));}catch(e){}}if(k==="ae_bookings"){bookings=mergeCloud("ae_bookings",bookings,val);try{lsSet("ae_bookings",JSON.stringify(bookings));}catch(e){}}if(k==="ae_availability")availability=val;if(k==="ae_compliance"){compliance=mergeCloud("ae_compliance",compliance,val);try{lsSet("ae_compliance",JSON.stringify(compliance));}catch(e){}}if(k==="ae_expenses"){expenses=mergeCloud("ae_expenses",expenses,val);try{lsSet("ae_expenses",JSON.stringify(expenses));}catch(e){}}if(k==="ae_photolib"){photoLib=mergeCloud("ae_photolib",photoLib,val);try{lsSet("ae_photolib",JSON.stringify(photoLib));}catch(e){}}if(k==="ae_tombs"){try{lsSet("ae_tombs",JSON.stringify(mergeTombs(load("ae_tombs",[]),val)));}catch(e){}}if(k==="ae_settings"){settings=Object.assign({},DS,val);settings.rates=Object.assign({},DR,settings.rates||{});}if(k==="ae_pins")crewMembers=val;if(k==="ae_active"){activeSession=val;updateBanner();}if(k==="ae_clocked"){if(currentUser&&currentUser.role==="crew"){var _all=(val&&val.memberId)?(function(){var o={};o[val.memberId]=val;return o;})():(val||{});crewClocked=_all[currentUser.id]||null;if(crewClocked){showCrewBanner();startCrewTimer();}else{hideCrewBanner();stopCrewTimer();}}}var modalOpen=document.getElementById("overlay")&&document.getElementById("overlay").classList.contains("open");if(!modalOpen)liveRedraw();}catch(e){}}).catch(function(){});},function(){});});}
+/* v50: batch the burst of cloud updates into one redraw so the screen stops flashing */
+function liveRedraw(){clearTimeout(window._lrT);window._lrT=setTimeout(function(){var mo=document.getElementById("overlay")&&document.getElementById("overlay").classList.contains("open");if(mo)return;if(currentUser&&currentUser.role==="manager"){try{render();}catch(e){}}if(currentUser&&currentUser.role==="crew"){try{crewDrawTab();}catch(e){}}},250);}
 
 var sessions=load("ae_sessions",[]);
 sessions.sort(function(a,b){return new Date(b.startTime)-new Date(a.startTime);});
@@ -1425,14 +1438,23 @@ keys.forEach(function(k){var raw;
 if(MK.indexOf(k)>-1&&!(window._lsFailedKeys||{})[k]){raw=localStorage.getItem(k);}
 else{raw=stash[k]!=null?stash[k]:localStorage.getItem(k);}
 if(raw===null||raw===undefined)return;
-try{db.collection("ae_data").doc(k).set({d:raw,t:Date.now()}).catch(function(){try{updateSyncStatus(false);}catch(e){}});}catch(e){}});
+try{cloudSet(k,raw).catch(function(){try{updateSyncStatus(false);}catch(e){}});}catch(e){}});
 }catch(e){}}
 function pushMergedBack(){try{
 if(typeof db==="undefined")return;
 var keys=Object.keys(window._needPush||{});if(!keys.length)return;window._needPush={};
-keys.forEach(function(k){var raw=localStorage.getItem(k);if(raw===null)return;
-try{db.collection("ae_data").doc(k).set({d:raw,t:Date.now()});}catch(e){}});
-try{toast("Restored records this device had that the cloud was missing");}catch(e){}
+var now=Date.now();window._pushLog=window._pushLog||{};window._pushStop=window._pushStop||{};
+keys.forEach(function(k){
+/* v50: loop guard — same list pushed over and over means something is stuck; stop auto-pushing it this session */
+if(window._pushStop[k])return;
+var lg=(window._pushLog[k]||[]).filter(function(x){return now-x<120000;});lg.push(now);window._pushLog[k]=lg;
+if(lg.length>4){window._pushStop[k]=true;try{console.log("pushMergedBack: stopped looping on "+k);}catch(e){}return;}
+/* v50: push the merged copy held in memory (localStorage can be stale when the phone's storage is full) */
+var mr=window._mergedRaw||{};var raw=null;if(window._lsFull||(window._lsFailedKeys||{})[k])raw=mr[k];delete mr[k];if(raw==null)raw=localStorage.getItem(k);if(raw===null)return;
+if(window._lastPushed&&window._lastPushed[k]===raw)return;
+try{cloudSet(k,raw).then(function(){window._lastPushed=window._lastPushed||{};window._lastPushed[k]=raw;
+if(!window._pushToasted){window._pushToasted=true;try{toast("Restored records this device had that the cloud was missing");}catch(e){}}
+}).catch(function(e){try{console.log("pushMergedBack failed "+k+": "+(e&&e.message));updateSyncStatus(false);}catch(e2){}});}catch(e){}});
 }catch(e){}}
 /* === v43 SURPRISE: DAILY CLOUD TIME MACHINE — automatic once-a-day full backup to the cloud, 14 days kept, one-tap restore === */
 var SNAP_KEYS=["ae_sessions","ae_invoices","ae_quotes","ae_expenses","ae_photolib","ae_crew","ae_bookings","ae_payruns","ae_compliance","ae_settings","ae_mhours","ae_service","ae_pins","ae_site_locations"];
